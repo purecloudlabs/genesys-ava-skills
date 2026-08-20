@@ -51,7 +51,7 @@ if [ "${AVA_MCP_YES:-0}" != "1" ]; then
 fi
 
 echo "Installing $(basename "$whl_url")..." >&2
-uv tool install --force "$whl_url"
+uv tool install --force "$whl_url" --reinstall-package ava-mcp
 uv tool update-shell >/dev/null 2>&1 || true
 
 echo "" >&2
