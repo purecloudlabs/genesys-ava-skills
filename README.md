@@ -8,7 +8,7 @@ Bring the full Genesys Cloud Agentic Virtual Agent (AVA) lifecycle into your AI 
 2. **Run the setup wizard** from your project root:
 
     ```bash
-    curl -sSL https://raw.githubusercontent.com/purecloudlabs/genesys-ava-skills/initial-release/install.sh | sh
+    curl -sSL https://raw.githubusercontent.com/purecloudlabs/genesys-ava-skills/main/install.sh | sh
     ```
 
 3. **Follow the prompts** — pick your IDE (Cursor, Kiro, or Claude Code), provide your Genesys Cloud region and OAuth credentials, and confirm the install plan.
