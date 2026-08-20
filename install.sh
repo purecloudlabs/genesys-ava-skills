@@ -56,3 +56,5 @@ uv tool update-shell >/dev/null 2>&1 || true
 
 echo "" >&2
 echo "Done. Open a new terminal, then run any of the commands listed above." >&2
+echo "To Setup AVA Harness, change to project directory and run ava-mcp-setup"
+echo "To Update AVA Harness Skills, change to project directory and run ava-mcp-update"
