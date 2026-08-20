@@ -1,4 +1,7 @@
-# Spec-Driven Development
+# AVA - Spec-Driven Development
+
+![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)
+![GitHub Release](https://img.shields.io/github/v/release/purecloudlabs/genesys-ava-skills?label=Release)
 
 Bring the full Genesys Cloud Agentic Virtual Agent (AVA) lifecycle into your AI coding IDE. Design, build, test, evaluate, and critique AVAs from Cursor, Kiro, or Claude Code without hand-writing a single API call.
 
@@ -13,15 +16,13 @@ Bring the full Genesys Cloud Agentic Virtual Agent (AVA) lifecycle into your AI 
 
 3. **Follow the prompts** — pick your IDE (Cursor, Kiro, or Claude Code), provide your Genesys Cloud region and OAuth credentials, and confirm the install plan.
 4. **Restart your IDE** (or reload MCP), then start a new agent session and say:
-   > Design a new AVA
+   > Help me design a new AVA
 
    The `ava-dispatch` skill takes it from there.
 
 ## Prerequisites
 
-You will need [`uv`](https://docs.astral.sh/uv/getting-started/installation/) for this installation.
-
-Before proceeding with the install, you need a role within the Genesys Cloud org with these permissions:
+To use these skills with a Genesys Cloud org, you need a role within the org with these permissions:
 
 | Domain         | Entity                                           | Actions                           |
 | -------------- | ------------------------------------------------ | --------------------------------- |
@@ -55,7 +56,7 @@ Mock DataAction authoring and Knowledge Fabric FileUpload tools are enabled by d
 
 ## Installation
 
-The wizard will ask you for the following:
+During the configuration, the wizard will ask you for the following:
 
 | Decision               | Values                                                                                   |
 | ---------------------- | ---------------------------------------------------------------------------------------- |
