@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 #
-# install.sh — install or update the `ava-mcp` CLI as a uv tool, built from
-# the latest ava_mcp*.whl in the genesys-ava-skills GitHub releases.
+# install.sh — install or update the ava-mcp CLI tools as a uv tool, built
+# from the latest ava_mcp*.whl in the genesys-ava-skills GitHub releases.
+# The wheel currently exposes multiple commands (ava-mcp, ava-mcp-update,
+# ava-mcp-docs, ava-mcp-setup, ...) — `uv tool install` installs all of
+# them, whatever they happen to be, so this script doesn't hardcode names.
 #
 # Usage:
 #   curl -sSL https://raw.githubusercontent.com/purecloudlabs/genesys-ava-skills/main/install.sh | sh
@@ -51,4 +54,5 @@ echo "Installing $(basename "$whl_url")..." >&2
 uv tool install --force "$whl_url"
 uv tool update-shell >/dev/null 2>&1 || true
 
-echo "Done. Run 'ava-mcp' (open a new terminal first if it's not found)." >&2
+echo "" >&2
+echo "Done. Open a new terminal, then run any of the commands listed above." >&2
