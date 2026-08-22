@@ -10,21 +10,21 @@ Bring the full Genesys Cloud Agentic Virtual Agent (AVA) lifecycle into your AI 
 ## Quick Start
 
 1. **Install [`uv`](https://docs.astral.sh/uv/getting-started/installation/)** if you don't have it already.
-2. **Run the setup wizard** from your project root:
+2. **Run the setup wizard**:
 
     ```bash
     curl -sSL https://raw.githubusercontent.com/purecloudlabs/genesys-ava-skills/main/install.sh | sh
     ```
 
 3. **Follow the prompts** — pick your IDE (Cursor, Kiro, or Claude Code), provide your Genesys Cloud region and OAuth credentials, and confirm the install plan.
-4. **Restart your IDE** (or reload MCP), then start a new agent session and say:
+4. **Restart your IDE** (or reload MCP), then start a new agent session and say something like:
    > Help me design a new AVA
 
    The `ava-dispatch` skill takes it from there.
 
 ## Prerequisites
 
-To use these skills with a Genesys Cloud org, you need a role within the org with these permissions:
+To use these skills with a Genesys Cloud org, you need a role with these permissions:
 
 | Domain         | Entity                                           | Actions                           |
 | -------------- | ------------------------------------------------ | --------------------------------- |
@@ -37,7 +37,7 @@ To use these skills with a Genesys Cloud org, you need a role within the org wit
 | `knowledge`    | `knowledgeSetting`                               | `view`                            |
 | `knowledge`    | `source`                                         | `view`                            |
 
-These core grants are always required and the installation will fail the permissions check if any is missing.
+These core grants are always required, and the installation will fail the permissions check if any are missing.
 
 **Mock DataAction authoring** (optional — setup sets `AVA_MOCK_DATA_ACTIONS_DISABLED=true` when any are missing):
 
@@ -58,12 +58,12 @@ Mock DataAction authoring and Knowledge Fabric FileUpload tools are enabled by d
 
 ## Installation
 
-During the configuration, the wizard will ask you for the following:
+During the configuration, the wizard asks you for the following:
 
 | Decision               | Values                                                                                   |
 | ---------------------- | ---------------------------------------------------------------------------------------- |
 | Install scope          | `project` (this repo, recommended) or `user` (all projects; not recommended)             |
-| IDE(s)                 | Cursor and/or Kiro (Claude Code: see below)                                              |
+| IDE(s)                 | Cursor, Kiro, and Claude Code                                    |
 | Actions                | Install MCP and/or Install/refresh skills and subagents                                  |
 | Habitat                | public API region (`AVA_HABITAT`) — asked only for Install MCP                           |
 | Credentials            | OAuth client credentials (preferred) or access token — asked only for Install MCP        |
@@ -74,16 +74,15 @@ into — paste that entry yourself, then restart the IDE (or reload MCP).
 **Install/refresh skills and subagents** previews the plan, then applies it
 after you confirm.
 
-**Alternate — agent-driven (Cursor / Kiro only).** Open Cursor or Kiro and start
-a new agent. Paste:
+**Alternate — agent-driven (Cursor / Kiro only).** Optionally, you can open Cursor or Kiro and start a new agent to drive teh installation. Paste:
 
 > Setup mcp, skills, and subagents by following `ava-mcp-docs`
 
-The agent runs that command from the command and drives the
-rest. It infers a single host IDE (Cursor or Kiro). It asks for install scope
-(`user` or `repo` — this flow uses `repo` for this workspace, not `project`),
-`AVA_HABITAT`, and OAuth method (in most cases, Client Credentials). If `repo`
-scope is chosen, run the procedure again for a new repo or folder.
+The agent runs that command and drives the rest. It infers a single host IDE
+(Cursor or Kiro). It asks for install scope (`user` or `repo` — this flow uses
+`repo` for this workspace, not `project`), `AVA_HABITAT`, and OAuth method (in
+most cases, Client Credentials). If `repo` scope is chosen, run the procedure
+again for a new repo or folder.
 
 ## Claude Code
 
@@ -101,7 +100,7 @@ After the installation is complete, the following AI Skills are installed that w
 
 | Skill             | What it does                                                                                                                                                         |
 | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ava-dispatch` | Entry point. Establishes org context, reads local sessions, detects new vs update, and routes to the right skill. Every session starts here.                         |
+| `ava-dispatch` | Entry point. Establishes org context, reads local sessions, detects new vs update, and routes to the right skill. Every session starts here.           |
 | `ava-design`      | Collects or edits AVA config — name, role, instructions, guardrails, tools, events, context variables, test cases — into a design artifact the build skill consumes. |
 | `ava-knowledge`   | Authors, validates, and uploads Knowledge Fabric FileUpload content, and ensures a FileUpload Knowledge Source and Knowledge Setting for the AVA.                    |
 | `ava-build`       | Builds and publishes the AVA from the design artifact, validating the definition before it reaches the Sage API. Handles both new AVAs and version updates.          |
@@ -124,9 +123,9 @@ After the installation is complete, the following sub-agents are installed that 
 
 ## AVA Harness
 
-The AVA Harness is a Model Context Protocol (MCP) server that gives your IDE agent direct, **validated** access to the Genesys Cloud AVA lifecycle.
+The AVA Harness is a Model Context Protocol (MCP) server that gives your IDE agent direct, validated access to the Genesys Cloud AVA lifecycle.
 
-The Harness exposes each AVA operation as a **Pydantic-validated tool**. Instead of hand-writing raw API calls and retrying after the backend rejects a malformed payload, the Harness validates each payload locally — bad payloads are caught **before any request reaches Genesys Cloud**. Every tool calls the public Genesys Cloud API; there is no private-backend fallback.
+The Harness exposes each AVA operation as a Pydantic-validated tool. Instead of hand-writing raw API calls and retrying after the backend rejects a malformed payload, the Harness validates each payload locally — bad payloads are caught **before any request reaches Genesys Cloud**. Every tool calls the public Genesys Cloud API; there is no private-backend fallback.
 
 ## Tools
 
