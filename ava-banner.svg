@@ -1,0 +1,54 @@
+<svg width="1200" height="300" viewBox="0 0 1200 300" xmlns="http://www.w3.org/2000/svg" role="img">
+<title>AVA — Spec-Driven Development for Genesys Cloud Virtual Agents</title>
+<desc>Banner reading AVA, Spec-Driven Development for Agentic Virtual Agents, with a lifecycle diagram of orchestrate, design, knowledge, build, test, evaluate, and critique nodes connected by flowing lines.</desc>
+<defs>
+<linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+<stop offset="0%" stop-color="#0A0E1A"/>
+<stop offset="55%" stop-color="#12102A"/>
+<stop offset="100%" stop-color="#1B0F32"/>
+</linearGradient>
+<radialGradient id="glow" cx="50%" cy="50%" r="50%">
+<stop offset="0%" stop-color="#FF4F1F" stop-opacity="0.16"/>
+<stop offset="100%" stop-color="#FF4F1F" stop-opacity="0"/>
+</radialGradient>
+<linearGradient id="line" x1="0%" y1="0%" x2="100%" y2="0%">
+<stop offset="0%" stop-color="#FF4F1F"/>
+<stop offset="100%" stop-color="#FF8A50"/>
+</linearGradient>
+</defs>
+
+<rect x="0" y="0" width="1200" height="300" fill="url(#bg)"/>
+<circle cx="960" cy="110" r="320" fill="url(#glow)"/>
+
+<rect x="70" y="56" width="196" height="32" rx="16" fill="#FF4F1F"/>
+<text x="168" y="77" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700" fill="#1A0A05" letter-spacing="1.5">GENESYS CLOUD</text>
+
+<text x="70" y="168" font-family="Arial, Helvetica, sans-serif" font-size="88" font-weight="700" fill="#F5F5F7">AVA</text>
+
+<text x="70" y="205" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="400" fill="#E6E6EA">Spec-driven development for Agentic Virtual Agents</text>
+
+<text x="70" y="238" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="400" fill="#9CA3AF">Design, build, test, evaluate, and critique AVAs from Cursor, Kiro, or Claude Code</text>
+
+<g font-family="Arial, Helvetica, sans-serif">
+<line x1="700" y1="150" x2="775" y2="90" stroke="url(#line)" stroke-width="2"/>
+<line x1="775" y1="90" x2="855" y2="150" stroke="url(#line)" stroke-width="2"/>
+<line x1="855" y1="150" x2="935" y2="90" stroke="url(#line)" stroke-width="2"/>
+<line x1="935" y1="90" x2="1015" y2="150" stroke="url(#line)" stroke-width="2"/>
+<line x1="1015" y1="150" x2="1095" y2="90" stroke="url(#line)" stroke-width="2"/>
+<path d="M 855 150 C 855 220 775 220 775 160" fill="none" stroke="#FF4F1F" stroke-width="1.5" stroke-dasharray="3,4" opacity="0.7"/>
+
+<circle cx="700" cy="150" r="9" fill="#1B0F32" stroke="#FF8A50" stroke-width="2"/>
+<circle cx="775" cy="90" r="9" fill="#FF4F1F"/>
+<circle cx="855" cy="150" r="9" fill="#FF4F1F"/>
+<circle cx="935" cy="90" r="9" fill="#FF4F1F"/>
+<circle cx="1015" cy="150" r="9" fill="#FF4F1F"/>
+<circle cx="1095" cy="90" r="9" fill="#1B0F32" stroke="#FF8A50" stroke-width="2"/>
+
+<text x="700" y="176" text-anchor="middle" font-size="12" fill="#C7C9D1">orchestrate</text>
+<text x="775" y="66" text-anchor="middle" font-size="12" fill="#F5F5F7">design</text>
+<text x="855" y="176" text-anchor="middle" font-size="12" fill="#F5F5F7">build</text>
+<text x="935" y="66" text-anchor="middle" font-size="12" fill="#F5F5F7">test</text>
+<text x="1015" y="176" text-anchor="middle" font-size="12" fill="#F5F5F7">evaluate</text>
+<text x="1095" y="66" text-anchor="middle" font-size="12" fill="#C7C9D1">critique</text>
+</g>
+</svg>

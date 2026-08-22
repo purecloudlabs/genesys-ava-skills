@@ -1,5 +1,7 @@
 # AVA - Spec-Driven Development
 
+![AVA](./ava-banner.svg)
+
 ![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)
 ![GitHub Release](https://img.shields.io/github/v/release/purecloudlabs/genesys-ava-skills?label=Release)
 
@@ -99,7 +101,7 @@ After the installation is complete, the following AI Skills are installed that w
 
 | Skill             | What it does                                                                                                                                                         |
 | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ava-orchestrate` | Entry point. Establishes org context, reads local sessions, detects new vs update, and routes to the right skill. Every session starts here.                         |
+| `ava-dispatch` | Entry point. Establishes org context, reads local sessions, detects new vs update, and routes to the right skill. Every session starts here.                         |
 | `ava-design`      | Collects or edits AVA config — name, role, instructions, guardrails, tools, events, context variables, test cases — into a design artifact the build skill consumes. |
 | `ava-knowledge`   | Authors, validates, and uploads Knowledge Fabric FileUpload content, and ensures a FileUpload Knowledge Source and Knowledge Setting for the AVA.                    |
 | `ava-build`       | Builds and publishes the AVA from the design artifact, validating the definition before it reaches the Sage API. Handles both new AVAs and version updates.          |
@@ -190,7 +192,7 @@ lacks the Mock DataAction authoring grants listed under Install.
 ## The lifecycle
 
 ```bash
-ava-orchestrate → ava-design ⇄ ava-knowledge → ava-build → ava-test → ava-evaluate
+ava-dispatch → ava-design ⇄ ava-knowledge → ava-build → ava-test → ava-evaluate
                         ↑                                          │
                         └──── ava-critique (any time) ─────────────┘
 ```
@@ -205,7 +207,7 @@ ava-orchestrate → ava-design ⇄ ava-knowledge → ava-build → ava-test → 
 
 **Flow summary:**
 
-1. `ava-orchestrate` — detects whether this is a new AVA or an update, then routes to the appropriate skill.
+1. `ava-dispatch` — detects whether this is a new AVA or an update, then routes to the appropriate skill.
 2. `ava-design` ⇄ `ava-knowledge` — iteratively refine the AVA definition and its knowledge content until both are ready.
 3. `ava-build` — validates and publishes the design artifact as a new AVA version.
 4. `ava-test` — authors evaluation scenarios against the published version.
@@ -227,7 +229,7 @@ Each authoring session writes to `.ava-lifecycle/` in your project root (gitigno
     └── eval-runs/
 ```
 
-In a nutshell, `ava-orchestrate` compares the last known Genesys Cloud AVA version against the live one and prompts you to pull, continue locally, or start fresh if the AVA was edited elsewhere.
+In a nutshell, `ava-dispatch` compares the last known Genesys Cloud AVA version against the live one and prompts you to pull, continue locally, or start fresh if the AVA was edited elsewhere.
 
 ## License
 
