@@ -35,7 +35,6 @@
 <line x1="855" y1="150" x2="935" y2="90" stroke="url(#line)" stroke-width="2"/>
 <line x1="935" y1="90" x2="1015" y2="150" stroke="url(#line)" stroke-width="2"/>
 <line x1="1015" y1="150" x2="1095" y2="90" stroke="url(#line)" stroke-width="2"/>
-<path d="M 855 150 C 855 220 775 220 775 160" fill="none" stroke="#FF4F1F" stroke-width="1.5" stroke-dasharray="3,4" opacity="0.7"/>
 
 <circle cx="700" cy="150" r="9" fill="#1B0F32" stroke="#FF8A50" stroke-width="2"/>
 <circle cx="775" cy="90" r="9" fill="#FF4F1F"/>
