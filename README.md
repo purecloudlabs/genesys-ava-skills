@@ -9,7 +9,7 @@ Bring the full Genesys Cloud Agentic Virtual Agent (AVA) lifecycle into your AI 
 
 ## Quick Start
 
-1. **Install [`uv`](https://docs.astral.sh/uv/getting-started/installation/)** if you don't have it already. (Ensure `uv` is not installed in a virtual environment.)
+1. **Install [`uv`](https://docs.astral.sh/uv/getting-started/installation/)** if you don't have it already. (Ensure `uv` is not installed in a virtual environment because the wizard needs access to global Python.)
 2. **Run the setup wizard**:
 
     ```bash
@@ -21,6 +21,23 @@ Bring the full Genesys Cloud Agentic Virtual Agent (AVA) lifecycle into your AI 
    > Help me design a new AVA
 
    The `ava-dispatch` skill takes it from there.
+
+## Usage Examples
+
+Once installed, start a new agent session in your IDE and use natural language. Here are common workflows:
+
+| What you want to do | What to say |
+| ------------------- | ----------- |
+| Create a new AVA from scratch | "Help me design a new AVA for appointment scheduling" |
+| Iterate on an existing AVA | "Update my Travel Booking AVA to add a cancellation flow" |
+| Add knowledge to an AVA | "Add FAQ knowledge cards to my Support AVA" |
+| Build and publish | "Build and publish my AVA" |
+| Write evaluation scenarios | "Create test scenarios for my AVA" |
+| Run evaluations | "Evaluate my AVA against the test set" |
+| Get a quality review | "Critique my AVA" |
+| Start a conversation with a published AVA | "Start a session with my AVA and test it" |
+
+You don't need to remember skill names — `ava-dispatch` reads your local session state and routes to the right skill automatically.
 
 ## Prerequisites
 
@@ -39,6 +56,10 @@ To use these skills with a Genesys Cloud org, you need a role with these permiss
 
 These core grants are always required, and the installation will fail the permissions check if any are missing.
 
+<details>
+
+<summary>See Optional Permissions</summary>
+
 **Mock DataAction authoring** (optional — setup sets `AVA_MOCK_DATA_ACTIONS_DISABLED=true` when any are missing):
 
 | Domain         | Entity        | Actions                            |
@@ -56,58 +77,37 @@ These core grants are always required, and the installation will fail the permis
 
 Mock DataAction authoring and Knowledge Fabric FileUpload tools are enabled by default. If the OAuth client is missing those extra grants, setup disables the matching tools automatically. Discovery tools (e.g., `list_resources`, `get_data_action_schema`, `validate_knowledge`) stay available either way.
 
+</details>
+
 ## Installation
 
-During the configuration, the wizard asks you for the following:
+The install script downloads the wheel and runs `ava-mcp setup` automatically. During the configuration, the wizard asks you for the following:
 
-| Decision               | Values                                                                                   |
-| ---------------------- | ---------------------------------------------------------------------------------------- |
-| Install scope          | `project` (this repo, recommended) or `user` (all projects; not recommended)             |
-| IDE(s)                 | Cursor, Kiro, and Claude Code                                    |
-| Actions                | Install MCP and/or Install/refresh skills and subagents                                  |
-| Habitat                | public API region (`AVA_HABITAT`) — asked only for Install MCP                           |
-| Credentials            | OAuth client credentials (preferred) or access token — asked only for Install MCP        |
-| Mock / knowledge flags | auto-computed from an in-process probe — not a user question                             |
+| Decision               | Values                                                                                                                              |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Install scope          | `project` (this repo, recommended) or `user` (all projects; not recommended)                                                        |
+| IDE(s)                 | Cursor, Kiro, and Claude Code                                                                                                       |
+| Actions                | Install MCP and/or Install/refresh skills and subagents                                                                             |
+| Habitat                | public API region such as prod-use1 (stored as environment variable `AVA_HABITAT`) — asked only for Install MCP                     |
+| Credentials            | OAuth client credentials (preferred) or access token — asked only for Install MCP                                                   |
+| Mock / knowledge flags | auto-computed from an in-process probe — not a user question                                                                        |
 
-**Install MCP** prints an `ava-harness` snippet and the config files to write it
-into — paste that entry yourself, then restart the IDE (or reload MCP).
-**Install/refresh skills and subagents** previews the plan, then applies it
-after you confirm.
-
-**Alternate — agent-driven (Cursor / Kiro only).** Optionally, you can open Cursor or Kiro and start a new agent to drive teh installation. Paste:
-
-> Setup mcp, skills, and subagents by following `ava-mcp-docs`
-
-The agent runs that command and drives the rest. It infers a single host IDE
-(Cursor or Kiro). It asks for install scope (`user` or `repo` — this flow uses
-`repo` for this workspace, not `project`), `AVA_HABITAT`, and OAuth method (in
-most cases, Client Credentials). If `repo` scope is chosen, run the procedure
-again for a new repo or folder.
-
-## Claude Code
-
-Claude Code uses the same `ava-mcp-setup` wizard. Select **Claude Code** in the
-IDE list.
-
-* **Project scope only.** MCP config is `./.mcp.json`; skills and subagents go in `./.claude`. User-scope install is not offered for Claude Code.
-* Do not use the agent-driven `ava-mcp-docs` flow for Claude Code — that path infers Cursor or Kiro only.
-
-Claude Cowork is not supported yet.
+To install or reconfigure MCP manually, run `ava-mcp setup`. To refresh skills and subagents after an update, run `ava-mcp update`.
 
 ## AI Skills
 
 After the installation is complete, the following AI Skills are installed that will be invoked as needed:
 
-| Skill             | What it does                                                                                                                                                         |
-| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ava-dispatch` | Entry point. Establishes org context, reads local sessions, detects new vs update, and routes to the right skill. Every session starts here.           |
-| `ava-design`      | Collects or edits AVA config — name, role, instructions, guardrails, tools, events, context variables, test cases — into a design artifact the build skill consumes. |
-| `ava-knowledge`   | Authors, validates, and uploads Knowledge Fabric FileUpload content, and ensures a FileUpload Knowledge Source and Knowledge Setting for the AVA.                    |
-| `ava-build`       | Builds and publishes the AVA from the design artifact, validating the definition before it reaches the Sage API. Handles both new AVAs and version updates.          |
-| `ava-test`        | Authors turn-based evaluation scenarios (persona, goal, ordered turns, reference trajectory, dimension-tagged rubric) and assembles them into a test set.            |
-| `ava-evaluate`    | Runs the scenarios as multi-turn conversations and reports a success-rate scorecard. Projects cost first, then delegates scenarios to the scenario-runner subagent.  |
-| `ava-critique`    | Reviews an AVA design or published version for quality — best-practice compliance, payload correctness, test coverage, deployment readiness.                         |
-| `ava-analysis`    | Deep AVA-definition analysis (role, tools, knowledge, configuration, guardrails) that produces an in-memory report. Used by the `ava-critique` subagent.             |
+| Skill          | What it does                                                                                                                                                                                          |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ava-dispatch` | Entry point. Routes incoming requests to the right skill based on local session state — detects new vs existing AVA, checks for remote changes, and dispatches accordingly. Every session starts here. |
+| `ava-design`   | Collects or edits AVA config — name, role, instructions, guardrails, tools, events, context variables, test cases — into a design artifact the build skill consumes.                                  |
+| `ava-knowledge` | Authors, validates, and uploads Knowledge Fabric FileUpload content, and ensures a FileUpload Knowledge Source and Knowledge Setting for the AVA.                                                    |
+| `ava-build`    | Builds and publishes the AVA from the design artifact, validating the definition before it reaches the Sage API. Handles both new AVAs and version updates.                                           |
+| `ava-test`     | Authors turn-based evaluation scenarios (persona, goal, ordered turns, reference trajectory, dimension-tagged rubric) and assembles them into a test set.                                             |
+| `ava-evaluate` | Runs the scenarios as multi-turn conversations and reports a success-rate scorecard. Projects cost first, then delegates scenarios to the scenario-runner subagent.                                    |
+| `ava-critique` | Reviews an AVA design or published version for quality — best-practice compliance, payload correctness, test coverage, deployment readiness.                                                          |
+| `ava-analysis` | Deep AVA-definition analysis (role, tools, knowledge, configuration, guardrails) that produces an in-memory report. Used by the `ava-critique` subagent.                                              |
 
 `ava-analysis` is an auxiliary skill invoked by critique — it is not a lifecycle step of its own.
 
@@ -190,7 +190,7 @@ lacks the Mock DataAction authoring grants listed under Install.
 
 ## The lifecycle
 
-```bash
+```text
 ava-dispatch → ava-design ⇄ ava-knowledge → ava-build → ava-test → ava-evaluate
                         ↑                                          │
                         └──── ava-critique (any time) ─────────────┘
@@ -198,15 +198,15 @@ ava-dispatch → ava-design ⇄ ava-knowledge → ava-build → ava-test → ava
 
 **Reading the diagram:**
 
-| Arrow | Meaning |
-| ----- | ------- |
-| `→`   | Hands off to the next skill in sequence. |
-| `⇄`   | Bidirectional — `ava-design` and `ava-knowledge` iterate together. Knowledge authoring may surface changes that feed back into the design artifact, and design changes (e.g., adding a knowledge-backed tool) may trigger new knowledge work. |
-| `↑ └──`| `ava-critique` can be invoked at any point in the lifecycle and feeds findings back to `ava-design` for revision. |
+| Arrow    | Meaning                                                                                                                                                                                                |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `→`      | Hands off to the next skill in sequence.                                                                                                                                                               |
+| `⇄`      | Bidirectional — `ava-design` and `ava-knowledge` iterate together. Knowledge authoring may surface changes that feed back into the design artifact, and design changes may trigger new knowledge work.  |
+| `↑ └──`  | `ava-critique` can be invoked at any point in the lifecycle and feeds findings back to `ava-design` for revision.                                                                                      |
 
 **Flow summary:**
 
-1. `ava-dispatch` — detects whether this is a new AVA or an update, then routes to the appropriate skill.
+1. `ava-dispatch` — routes your request to the right skill based on local session state. Detects new vs existing AVA and checks for remote changes before dispatching.
 2. `ava-design` ⇄ `ava-knowledge` — iteratively refine the AVA definition and its knowledge content until both are ready.
 3. `ava-build` — validates and publishes the design artifact as a new AVA version.
 4. `ava-test` — authors evaluation scenarios against the published version.
@@ -217,7 +217,7 @@ ava-dispatch → ava-design ⇄ ava-knowledge → ava-build → ava-test → ava
 
 Each authoring session writes to `.ava-lifecycle/` in your project root (gitignored). Every AVA gets its own subdirectory, so multiple AVAs and sessions never overwrite each other:
 
-```bash
+```text
 .ava-lifecycle/
 ├── index.json          # every local AVA session: slug → agent_id, gc_version, status
 └── <ava-slug>/         # one folder per AVA
