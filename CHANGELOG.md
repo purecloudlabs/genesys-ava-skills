@@ -1,8 +1,12 @@
 # Changelog
 
+## 1.5.1
+
+pipeline testing
+
 ## 1.5.0
 
-Improved Setup 
+Improve Setup 
 
 ### CLI
 
