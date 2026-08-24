@@ -9,7 +9,7 @@ Bring the full Genesys Cloud Agentic Virtual Agent (AVA) lifecycle into your AI 
 
 ## Quick Start
 
-1. **Install [`uv`](https://docs.astral.sh/uv/getting-started/installation/)** if you don't have it already.
+1. **Install [`uv`](https://docs.astral.sh/uv/getting-started/installation/)** if you don't have it already. (Ensure `uv` is not installed in a virtual environment.)
 2. **Run the setup wizard**:
 
     ```bash
