@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Skills
+
+- Added **ava-demo-video** for producing narrated, branded AVA demo videos from scripts and live AI Studio Preview captures. The skill covers source verification, manual caller recording, clean MP4 finalization, trimming, intro/exit narration, result-evidence cards, manifests, review frames, and final handoff notes.
+
 ## 1.5.0
 
 Improved Setup 

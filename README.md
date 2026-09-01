@@ -36,6 +36,7 @@ Once installed, start a new agent session in your IDE and use natural language. 
 | Run evaluations | "Evaluate my AVA against the test set" |
 | Get a quality review | "Critique my AVA" |
 | Start a conversation with a published AVA | "Start a session with my AVA and test it" |
+| Create a polished demo video | "Build a narrated demo video from this AVA Preview recording" |
 
 You don't need to remember skill names — `ava-dispatch` reads your local session state and routes to the right skill automatically.
 
@@ -108,8 +109,9 @@ After the installation is complete, the following AI Skills are installed that w
 | `ava-evaluate` | Runs the scenarios as multi-turn conversations and reports a success-rate scorecard. Projects cost first, then delegates scenarios to the scenario-runner subagent.                                    |
 | `ava-critique` | Reviews an AVA design or published version for quality — best-practice compliance, payload correctness, test coverage, deployment readiness.                                                          |
 | `ava-analysis` | Deep AVA-definition analysis (role, tools, knowledge, configuration, guardrails) that produces an in-memory report. Used by the `ava-critique` subagent.                                              |
+| `ava-demo-video` | Produces narrated, branded AVA demo videos from scripts and live AI Studio Preview captures, including source verification, trimming, result cards, manifests, and final video QA.                    |
 
-`ava-analysis` is an auxiliary skill invoked by critique — it is not a lifecycle step of its own.
+`ava-analysis` is an auxiliary skill invoked by critique. `ava-demo-video` is an optional production skill for presales and enablement artifacts; it is not a required lifecycle step.
 
 ## Sub-agents
 
