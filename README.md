@@ -21,6 +21,9 @@ Bring the full Genesys Cloud Agentic Virtual Agent (AVA) lifecycle into your AI 
     ```bash
    irm https://raw.githubusercontent.com/mcphee11/genesys-ava-skills/main/install.ps1 | iex
     ```
+    NOTE: If you run into an error around TLS on the Windows install you many need to run the command `$env:UV_SYSTEM_CERTS = "true"` before running the install script.
+
+
 3. **Follow the prompts** — pick your IDE (Cursor, Kiro, or Claude Code), provide your Genesys Cloud region and OAuth credentials, and confirm the install plan.
 4. **Restart your IDE** (or reload MCP), then start a new agent session and say something like:
    > Help me design a new AVA
