@@ -1,8 +1,12 @@
 # Changelog
 
+## 1.5.1
+
+Introducing ava_skills package. Separate whl package with just the skills used in ava mcp
+
 ## 1.5.0
 
-Improved Setup 
+Improve Setup 
 
 ### CLI
 
