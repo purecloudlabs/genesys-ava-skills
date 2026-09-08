@@ -18,7 +18,7 @@
 
 $ErrorActionPreference = "Stop"
 
-$Repo = "purecloudlabs/genesys-ava-skills"
+$Repo = "mcphee11/genesys-ava-skills"
 
 if (-not (Get-Command uv -ErrorAction SilentlyContinue)) {
     Write-Error "'uv' is not installed. Install it first:`n  irm https://astral.sh/uv/install.ps1 | iex"
