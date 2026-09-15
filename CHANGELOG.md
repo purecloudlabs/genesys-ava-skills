@@ -1,8 +1,18 @@
 # Changelog
 
+## 1.5.2
+
+Optional model (Stable / Preview) on VersionDefinition; new AVAs use Preview; updates prompt on Stable; "build" skill passes it through.
+
+## 1.5.1
+
+- Introducing ava_skills package. Separate whl package with just the skills used in ava mcp
+
+- Update ava-analysis skill to handle conditional output instructions.
+
 ## 1.5.0
 
-Improved Setup 
+Improve Setup 
 
 ### CLI
 
