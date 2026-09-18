@@ -57,6 +57,8 @@ if ($env:AVA_MCP_YES -ne "1") {
     }
 }
 
+$env:UV_SKIP_WHEEL_FILENAME_CHECK=1
+
 Write-Host "Installing $whlName..."
 uv tool install --force $whlUrl --reinstall-package ava-mcp
 try { uv tool update-shell *> $null } catch { }
