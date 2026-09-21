@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.3
+
+Fix: Enforcing encoding to avoid issues with Windows installations
+
 ## 1.5.2
 
 Optional model (Stable / Preview) on VersionDefinition; new AVAs use Preview; updates prompt on Stable; "build" skill passes it through.
