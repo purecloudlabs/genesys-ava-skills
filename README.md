@@ -10,11 +10,20 @@ Bring the full Genesys Cloud Agentic Virtual Agent (AVA) lifecycle into your AI 
 ## Quick Start
 
 1. **Install [`uv`](https://docs.astral.sh/uv/getting-started/installation/)** if you don't have it already. (Ensure `uv` is not installed in a virtual environment because the wizard needs access to global Python.)
-2. **Run the setup wizard**:
+2. **Run the setup wizard (Linux/Mac)**:
 
     ```bash
     curl -sSL https://raw.githubusercontent.com/purecloudlabs/genesys-ava-skills/main/install.sh | sh
     ```
+   **Run the setup wizard (Windows)**:
+
+    ```bash
+   irm https://raw.githubusercontent.com/purecloudlabs/genesys-ava-skills/main/install.ps1 | iex
+    ```
+
+NOTE: If you run into an error around TLS on the install you many need to run the below commands before running the install script.
+Windows: `$env:UV_SYSTEM_CERTS = "true"` 
+Linux/MAC: `export UV_SYSTEM_CERTS="true"`
 
 3. **Follow the prompts** — pick your IDE (Cursor, Kiro, or Claude Code), provide your Genesys Cloud region and OAuth credentials, and confirm the install plan.
 4. **Restart your IDE** (or reload MCP), then start a new agent session and say something like:
