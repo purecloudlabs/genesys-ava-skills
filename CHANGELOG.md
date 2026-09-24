@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.4
+
+Updated installation messaging and commands to support Windows.
+
 ## 1.5.3
 
 Fix: Enforcing encoding to avoid issues with Windows installations
