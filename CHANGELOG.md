@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.5
+
+Added support for configuring contextual comfort statements and end context in AVA
+
 ## 1.5.4
 
 Updated installation messaging and commands to support Windows.
