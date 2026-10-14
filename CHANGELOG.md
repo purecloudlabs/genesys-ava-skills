@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.6
+
+Removed Preview model transition notice; default AVA skills to use Preview model
+
 ## 1.5.5
 
 Added support for configuring contextual comfort statements and end context in AVA
