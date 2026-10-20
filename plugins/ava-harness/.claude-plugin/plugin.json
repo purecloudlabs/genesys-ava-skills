@@ -1,7 +1,7 @@
 {
   "name": "ava-harness",
   "displayName": "AVA Harness",
-  "version": "1.5.6",
+  "version": "0.0.1",
   "description": "AVA skills, subagents, and MCP server for Genesys",
   "author": {
     "name": "Genesys Cloud Services, Inc."
