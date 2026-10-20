@@ -1,0 +1,91 @@
+{
+  "skill_name": "ava-critique",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Review this AVA definition: name='testBot', instructions=[{\"content\": \"Always greet the customer by name\"}, {\"content\": \"Never discuss competitor products\"}], guardrails={custom: [{instruction: \"Do not discuss pricing\", enabled: true}]}, events=[{type: \"UserExit\", message: \"Goodbye!\"}]",
+      "expected_output": "The skill flags two issues at different severities: the AVA name 'testBot' as a WARNING (generic, not domain-specific \u2014 a more descriptive name is recommended), and instructions as an ERROR because they are objects ({\"content\": \"...\"}) instead of plain strings, citing the Sage API requirement and providing the corrected format: [\"Always greet the customer by name\", \"Never discuss competitor products\"]. Guardrails ({custom: [...]}) pass review with no error.",
+      "expected_skill": "ava-critique",
+      "files": [],
+      "assertions": [
+        "AVA name 'testBot' is flagged as WARNING (generic name), with a more descriptive name recommended",
+        "Instructions format error is flagged as ERROR (not warning) because they are objects, not plain strings",
+        "Corrected instructions format is shown as a plain string array",
+        "guardrails {custom: [...]} format is recognized as correct (no error)",
+        "The WARNING-level naming issue and the ERROR-level instructions issue are both surfaced, at their correct distinct severities"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Review this AVA definition: name='Support AVA', instructions=[\"Greet the customer\", \"Help with account issues\"], guardrails=[{instruction: \"Do not discuss pricing\", enabled: true}, {instruction: \"Do not share account details\", enabled: true}], events=[{type: \"UserExit\", message: \"Goodbye!\"}]",
+      "expected_output": "The skill flags guardrails as an ERROR because they are a flat array instead of wrapped in {custom: [...]}. It cites the Sage API requirement and provides the corrected format: guardrails: {custom: [{instruction: \"Do not discuss pricing\", enabled: true}, ...]}. Instructions pass review.",
+      "expected_skill": "ava-critique",
+      "files": [],
+      "assertions": [
+        "Guardrails flat array format is flagged as ERROR",
+        "Error message explains that guardrails must be wrapped as {custom: [...]}",
+        "Corrected guardrails format is shown with the {custom: [...]} wrapper",
+        "Instructions plain string format is recognized as correct (no error)"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Critique the 'eval-shared-lifecycle Agent'. Use the ava-critique Skill (via the Skill tool) to do this, not the Agent/Task tool directly \u2014 the skill itself is responsible for resolving the target and launching its subagent. Specifically review the live published version (Option B), not the local design artifact \u2014 resolve its agent_id from .ava-lifecycle/index.json or by name, not from a design_artifact_path. When the skill launches the ava-critique subagent, it should run in the foreground (run_in_background: false) and wait for the actual completed result before responding \u2014 do not report that it is 'still running' or that you'll follow up once it completes.",
+      "expected_output": "The skill (invoked via the Skill tool, not a direct Agent/Task call) resolves agent_id (not a design_artifact_path) and launches the ava-critique subagent, passing a prompt that references that agent_id rather than any design_artifact_path. The subagent calls get_latest_published_version (falling back to get_latest_saved_version if needed) to load the real live version definition, then calls generate_critique_report. The skill reports a critique summary without ever reporting the agent as missing.",
+      "expected_skill": "ava-critique",
+      "files": [],
+      "lifecycle_fixture": "published",
+      "bootstrap": {
+        "slug": "fixture-ava",
+        "ava_name": "eval-shared-lifecycle Agent",
+        "publish_fixture": "shared-lifecycle/bootstrap"
+      },
+      "assertions": [
+        "The ava-critique subagent's launch prompt references the real agent_id and explicitly avoids a design_artifact_path",
+        "get_latest_published_version or get_latest_saved_version is called to resolve the live version",
+        "generate_critique_report is called",
+        "The skill does not report the agent as missing"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Can you review my 'Acme Order Assistant' AVA design before I build it?",
+      "expected_output": "The skill does NOT flag configuration.comfort_statement.enabled or the acknowledgment line in the tool's input_instructions as an 'Ava-injected default' or platform-injected-field violation. Both are recognized as legitimate author-facing configuration, distinct from the literal legacy interstitial_message field. Only genuine issues, if any, are flagged.",
+      "expected_skill": "ava-critique",
+      "lifecycle_fixture": "cs-comfort-statement",
+      "files": [],
+      "assertions": [
+        "configuration.comfort_statement.enabled is not flagged as a platform-injected/Ava-injected field violation",
+        "The acknowledgment line inside the tool's input_instructions is not flagged as authoring a platform-injected field",
+        "No ERROR is raised for either pattern",
+        "The review distinguishes this from the literal legacy interstitial_message field, which remains flagged if present"
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "Review this AVA definition: name='Acme Support Assistant', instructions=['Greet the customer', 'Look up the order before answering status questions'], tools=[{name: 'lookup_order', type: 'DataAction', output: 'OrderResult'}], types=[{name: 'OrderResult', type: 'object', direction: 'output', properties: [{name: 'status', type: 'string'}]}, {name: 'OutputData', type: 'object', direction: 'agentOutput', properties: [{name: 'order_status', type: 'string', mapping: ['InputData', 'order_status']}]}] Use the ava-critique Skill (via the Skill tool) to do this. When the skill launches the ava-critique subagent, run it in the foreground (run_in_background: false) and wait for its actual completed result before responding \u2014 do not report that it is 'still running' or that you'll follow up once it completes.",
+      "expected_output": "The skill flags the End Context property 'order_status' as an ERROR because its mapping root is 'InputData', which is not a Data Action tool's output type \u2014 only 'OrderResult' (lookup_order's declared output type) would be a valid mapping root. It cites constraint T9 and recommends correcting the mapping to ['OrderResult', 'status'] or an equivalent valid tool-output field.",
+      "expected_skill": "ava-critique",
+      "files": [],
+      "assertions": [
+        "End Context property 'order_status' is flagged as ERROR for an invalid mapping root",
+        "The error explains the mapping root must reference a Data Action tool's output type, citing 'OrderResult' as the valid option here",
+        "Constraint T9 is referenced by name",
+        "No error is raised for the OrderResult output type itself, which is correctly declared with direction: output"
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "Review this AVA definition: name='Acme Support Assistant', instructions=['Greet the customer', 'Answer policy questions, then process any refund the customer is owed'], tools=[{name: 'search_policies', type: 'KnowledgeBase', contextRetentionEnabled: false}, {name: 'process_refund', type: 'DataAction', output: 'RefundResult', contextRetentionEnabled: false}] Use the ava-critique Skill (via the Skill tool) to do this. When the skill launches the ava-critique subagent, run it in the foreground (run_in_background: false) and wait for its actual completed result before responding \u2014 do not report that it is 'still running' or that you'll follow up once it completes.",
+      "expected_output": "The skill flags 'search_policies' as an ERROR because contextRetentionEnabled is set on a KnowledgeBase tool, where it is not supported (constraint L16) \u2014 Sage rejects it at publish. The DataAction tool 'process_refund' is not flagged; contextRetentionEnabled is valid there.",
+      "expected_skill": "ava-critique",
+      "files": [],
+      "assertions": [
+        "The tool 'search_policies' is flagged as ERROR for setting contextRetentionEnabled on a non-DataAction tool",
+        "The error explains contextRetentionEnabled is only valid on DataAction tools",
+        "Constraint L16 is referenced by name",
+        "No error is raised for 'process_refund', whose contextRetentionEnabled setting is valid"
+      ]
+    }
+  ]
+}

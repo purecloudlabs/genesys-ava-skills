@@ -1,0 +1,65 @@
+{
+  "skill_name": "ava-evaluate",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Run evaluation for test set 'ts-pass-001' under .ava-lifecycle/acme-order-assistant/. All scenarios complete with valid attempt-N.json files and passing rubric verdicts.",
+      "expected_output": "The skill delegates scenario-runner sub-agents, collects attempt file paths, calls generate_scorecard once, and presents scorecard.md showing PASS with scenarios passed.",
+      "expected_skill": "ava-evaluate",
+      "files": [],
+      "assertions": [
+        "generate_scorecard MCP tool is called exactly once after all scenarios finish",
+        "Scorecard shows PASS status with passed scenarios and zero infra_error",
+        "scorecard.md content is read for presentation; html/json paths are echoed only",
+        "Next step recommendation is for closure or deployment, not debugging"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Run evaluation for test set 'ts-infra-002'. Several attempt files have unparseable layer2 verdicts or missing rubric entries \u2014 generate_scorecard marks them infra_error.",
+      "expected_output": "The skill recognizes infra_error attempts as infrastructure problems, not behavioral test failures. It presents the scorecard with INFRA annotation and recommends checking scenario-runner output and MCP connectivity.",
+      "expected_skill": "ava-evaluate",
+      "files": [],
+      "assertions": [
+        "Unparseable or missing layer2 verdicts are identified as infra_error in the scorecard",
+        "Scorecard summary or per-scenario classification reflects infra_error appropriately",
+        "Next step recommendation is infrastructure debugging (runner output, MCP server), not AVA instruction fixes",
+        "Troubleshooting guidance references attempt file format and judge output quality"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Run evaluation for test set 'fixture-ava-suite' under .ava-lifecycle/fixture-ava/, against the published 'eval-shared-lifecycle Agent'. Use the ava-evaluate Skill (via the Skill tool) to do this. Do not pause to ask for confirmation on the projected call estimate \u2014 proceed directly with the live evaluation run. When you delegate to the ava-scenario-runner subagent, run it in the foreground (run_in_background: false) and wait for its actual completed result before responding \u2014 do not report that it is 'still running' or that you'll follow up once it completes.",
+      "expected_output": "The skill (invoked via the Skill tool) reads the real test-sets/fixture-ava-suite.json and test-cases/auth-happy-path.json, delegates the one scenario to the ava-scenario-runner subagent, which drives a real Cicero session against the published agent, runs Layer 1/Layer 2 validation, and writes a real attempt-N.json under .ava-lifecycle/fixture-ava/eval-runs/. The skill then calls generate_scorecard exactly once and presents scorecard.md.",
+      "expected_skill": "ava-evaluate",
+      "files": [],
+      "lifecycle_fixture": "with-test-set",
+      "bootstrap": {
+        "slug": "fixture-ava",
+        "ava_name": "eval-shared-lifecycle Agent",
+        "publish_fixture": "shared-lifecycle/bootstrap"
+      },
+      "assertions": [
+        "The ava-scenario-runner subagent is launched with the auth-happy-path scenario, and its completed result (not a 'still running' status) is reflected in the skill's response",
+        "generate_scorecard is called exactly once after the scenario finishes",
+        "The skill reads scorecard.md to present results, not the raw json/html paths directly",
+        "The skill does not report the test set, test case, or agent as missing"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Run evaluation for test set 'order-status-eval-suite' under .ava-lifecycle/order-status-eval/, against the published 'eval-end-context-order-status Agent'. Use the ava-evaluate Skill (via the Skill tool) to do this. Do not pause to ask for confirmation on the projected call estimate \u2014 proceed directly with the live evaluation run. When you delegate to the ava-scenario-runner subagent, run it in the foreground (run_in_background: false) and wait for its actual completed result before responding \u2014 do not report that it is 'still running' or that you'll follow up once it completes.",
+      "expected_output": "The skill (invoked via the Skill tool) reads the real test-sets/order-status-eval-suite.json and test-cases/order-status-mismatch.json, delegates the one scenario to the ava-scenario-runner subagent, which drives a real Cicero session against the published agent. The AVA's End Context actually returns order_status='In Transit' (the real GetOrderStatus mock's response), but the scenario expects 'Delivered', so validate_trajectory reports outputDataMatch=false for this attempt. The skill then calls generate_scorecard exactly once, and the scorecard reflects a genuine FAIL \u2014 not an infra_error \u2014 for this scenario.",
+      "expected_skill": "ava-evaluate",
+      "files": [],
+      "assertions": [
+        "validate_trajectory (directly or via the delegated scenario-runner) is invoked with expected_output_data for this scenario, not omitted",
+        "The mismatch between expected order_status 'Delivered' and the real observed value is reflected as outputDataMatch false / a failure in the attempt result or scorecard",
+        "generate_scorecard is still called exactly once after the scenario finishes",
+        "The skill does not classify this mismatch as an infra_error \u2014 it is a genuine behavioral/output difference",
+        "The skill does not report the test set, test case, or agent as missing"
+      ],
+      "lifecycle_fixture": "with-output-data-mismatch"
+    }
+  ]
+}

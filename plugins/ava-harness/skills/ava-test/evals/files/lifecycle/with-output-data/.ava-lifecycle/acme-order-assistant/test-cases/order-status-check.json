@@ -1,0 +1,61 @@
+{
+  "agent_id": "00000000-0000-4000-8000-000000000002",
+  "name": "Order status check",
+  "type": "scripted",
+  "language": "en-US",
+  "test_config": {
+    "trajectory": []
+  },
+  "x_eval": {
+    "persona": "A customer checking on order 98765.",
+    "goal": "Get the current status of order 98765. Done when the agent states the order status.",
+    "start_context": {},
+    "turns": [
+      {
+        "source": "fixed_user",
+        "text": "What is the status of order 98765?"
+      }
+    ],
+    "reference_trajectory": [
+      {
+        "tool": "check_order_status",
+        "params": {"order_id": "98765"},
+        "match": "exact",
+        "order": 1
+      }
+    ],
+    "rubric": [
+      {
+        "id": "goal-1",
+        "dimension": "goal",
+        "assertion": "The agent stated the order's status.",
+        "weight": 1.0
+      },
+      {
+        "id": "tool-1",
+        "dimension": "tool_use",
+        "assertion": "The agent called check_order_status with order_id 98765.",
+        "weight": 1.0
+      },
+      {
+        "id": "gr-1",
+        "dimension": "guardrail",
+        "assertion": "The agent did not disclose unrelated order information.",
+        "weight": 1.0
+      },
+      {
+        "id": "tone-1",
+        "dimension": "tone_format",
+        "assertion": "The response was concise and professional.",
+        "weight": 1.0
+      }
+    ],
+    "attempts": 1,
+    "max_turns": 8,
+    "success_threshold": 0.8
+  },
+  "metadata": {
+    "id": "order-status-check",
+    "created_at": "2026-09-25T12:00:00+00:00"
+  }
+}

@@ -1,0 +1,207 @@
+{
+  "skill_name": "ava-build",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Create and publish the AVA from the design artifact at .ava-lifecycle/design-artifact.json. The design is for 'Acme Order Assistant'.",
+      "expected_output": "The skill reads the design artifact, calls create_ava for a new AVA (since no agent_id exists in the artifact), calls create_version with a payload where instructions are plain strings (not objects), guardrails wrapped as {custom: [...]}, events as a typed array, then calls publish_version and polls until completion. Saves agent_id under .ava-lifecycle/<slug>/sage-agent.json.",
+      "expected_skill": "ava-build",
+      "lifecycle_fixture": "design-complete",
+      "max_turns": 32,
+      "files": [],
+      "assertions": [
+        "create_ava MCP tool is called to create the AVA shell",
+        "create_version MCP tool is called with instructions as plain strings, not [{content: '...'}] objects",
+        "guardrails in the payload are wrapped as {custom: [...]} not a flat array",
+        "events in the payload are a typed array not a nested object",
+        "publish_version MCP tool is called after version creation",
+        "sage-agent.json is saved somewhere under .ava-lifecycle/ (directly or in a slug subdirectory) with agent_id and version"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Create the AVA from design artifact. The AVA is named 'Acme Order Assistant'.",
+      "expected_output": "The skill detects that an AVA with the same name already exists via the create_ava idempotency check. It uses the existing agent_id 'agt-existing-001' instead of creating a duplicate. It proceeds directly to create_version with the existing agent_id.",
+      "expected_skill": "ava-build",
+      "files": [
+        "files/existing-ava-list-resources.json"
+      ],
+      "assertions": [
+        "Existing AVA with matching name is detected",
+        "create_ava does NOT create a duplicate -- it returns the existing agent_id",
+        "create_version is called with the existing agent_id 'agt-existing-001'",
+        "No duplicate AVA is created"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Update the existing AVA. The design artifact at .ava-lifecycle/design-artifact.json has agent_id: 'agt-update-002' from a previous creation.",
+      "expected_output": "The skill reads the agent_id from the design artifact (or sage-agent.json), skips the create_ava call entirely since agent_id already exists, and goes directly to create_version with agent_id 'agt-update-002', then publishes.",
+      "expected_skill": "ava-build",
+      "files": [],
+      "assertions": [
+        "agent_id 'agt-update-002' is read from the artifact",
+        "create_ava MCP tool is NOT called",
+        "create_version MCP tool is called directly with the existing agent_id",
+        "publish_version is called and result is reported"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Create the AVA from design artifact. The artifact defines four tools and their types in the attached fixture.",
+      "expected_output": "The skill's Step 2.5 pre-flight validation detects the L5 violation on 'update_vehicle' (a ToolOutput-sourced input declared with primitive type 'string' instead of the producer's real output type 'AccountResult') and blocks before calling create_version, reporting the specific field to fix. In the same pass, it does NOT flag the separate, correctly-wired 'verify_identity' \u2192 'get_records' AuthToken pair \u2014 that wiring is valid and must not be reported as an error.",
+      "expected_skill": "ava-build",
+      "files": [
+        "files/l5-primitive-type-design-artifact.json"
+      ],
+      "assertions": [
+        "Step 2.5 pre-flight validation detects the ToolOutput primitive-type violation on 'update_vehicle' (type 'string' instead of the producer's output type 'AccountResult')",
+        "The error message identifies tool 'update_vehicle' and the offending input",
+        "create_version is NOT called \u2014 the violation is caught before the API round-trip",
+        "The skill recommends fixing the type to 'AccountResult' (the producer's output type)",
+        "The correctly-wired 'verify_identity' \u2192 'get_records' AuthToken pair is NOT flagged \u2014 no false positive on valid ToolOutput wiring elsewhere in the same artifact",
+        "No retry loop \u2014 this is a deterministic design error, not a transient failure"
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "Create the AVA from design artifact. The artifact has a tool 'lookup_account' with output: 'AccountLookupResult', but the type 'AccountLookupResult' in types[] is declared without direction (no direction field at all). Separately, the artifact also has an InputData object (direction: agentInput) with a property 'customer_id' (type: CustomerId) marked required: true.",
+      "expected_output": "The skill's Step 2.5 pre-flight validation detects both violations: the T8 missing-direction trap ('AccountLookupResult' is used as tool output but has no direction: 'output') and the T7a Start-Context required-property trap ('customer_id' is marked required: true, which the platform always rejects). It blocks before calling create_version and reports both specific fields to fix.",
+      "expected_skill": "ava-build",
+      "files": [],
+      "assertions": [
+        "Step 2.5 pre-flight validation detects the missing direction on output type 'AccountLookupResult' used by tool 'lookup_account' (T8)",
+        "Step 2.5 pre-flight validation detects required: true on Start Context property 'customer_id' (T7a)",
+        "create_version is NOT called \u2014 both violations are caught before any API round-trip",
+        "The skill recommends adding direction: 'output' to 'AccountLookupResult' and separately recommends removing required (or using fallback_to_user/prompting) for 'customer_id'",
+        "No retry loop \u2014 both are deterministic design errors caught before the API call"
+      ]
+    },
+    {
+      "id": 9,
+      "prompt": "Create the AVA from design artifact. The artifact has an InputData object (direction: agentInput) with a property 'contact_channel' referencing an enum type 'ContactChannel' (type: string, enum: ['voice', 'chat']). Separately, the artifact has a tool 'verify_owner' with an input { source: 'External', required: true, targetName: 'service', type: 'ServiceIdentifier' } but fallbackToUser is not set. ServiceIdentifier is a Start Context property type.",
+      "expected_output": "The skill's Step 2.5 pre-flight validation detects both violations: the T7b enum-in-Start-Context trap ('contact_channel' references an enum type, which is rejected in Start Context) and the L15 External-required-without-fallback trap (the External-sourced, required input 'service' does not set fallbackToUser: true). It blocks before calling create_version and reports both specific fields to fix.",
+      "expected_skill": "ava-build",
+      "files": [],
+      "assertions": [
+        "Step 2.5 pre-flight validation detects the enum type 'ContactChannel' referenced by Start Context property 'contact_channel' (T7b)",
+        "Step 2.5 pre-flight validation detects the External required input 'service' on 'verify_owner' missing fallbackToUser (L15)",
+        "create_version is NOT called \u2014 both violations are caught before any API round-trip",
+        "The skill recommends replacing the enum with a plain string alias type and separately recommends setting fallbackToUser: true on the External input",
+        "No retry loop \u2014 both are deterministic design errors caught before the API call"
+      ]
+    },
+    {
+      "id": 11,
+      "prompt": "Create the AVA from design artifact. The artifact has a tool 'verify_owner' with an input { source: 'External', required: true, fallbackToUser: true, targetName: 'service', type: 'string' }. There is no InputData property of that type. This is the External-input-bare-primitive trap.",
+      "expected_output": "The skill detects the L15 violation in Step 2.5 pre-flight validation: the External-sourced input 'service' uses a bare primitive type 'string' instead of a named type declared as a Start Context (InputData) property. It blocks before calling create_version and recommends creating a named alias (e.g. ServiceIdentifier) on InputData and referencing it.",
+      "expected_skill": "ava-build",
+      "files": [],
+      "assertions": [
+        "Step 2.5 pre-flight validation detects the bare primitive type on the External input",
+        "The error message identifies input 'service' on tool 'verify_owner' and the type 'string'",
+        "create_version is NOT called",
+        "The skill recommends creating a named type as an InputData property and referencing it (e.g. ServiceIdentifier)",
+        "No retry loop \u2014 deterministic design error caught before API call"
+      ]
+    },
+    {
+      "id": 12,
+      "prompt": "Create the AVA from design artifact. The artifact has inline mock definitions from create_mock_data_action, one of which has error.code set to 'resource.not.found' and no error.status set at all.",
+      "expected_output": "The skill's Step 2.5 pre-flight validation recognizes 'resource.not.found' as a canonical code that maps to HTTP 404 via the L10 table. No warning is issued \u2014 the code is valid and resolves deterministically. It proceeds directly to create_version with no warning and no block.",
+      "expected_skill": "ava-build",
+      "files": [],
+      "assertions": [
+        "Step 2.5 recognizes 'resource.not.found' as canonical (maps to 404)",
+        "No warning or block is issued \u2014 the code resolves to 404 via the canonical table",
+        "create_version IS called without delay",
+        "No unnecessary retry \u2014 canonical codes with no error.status proceed normally"
+      ]
+    },
+    {
+      "id": 13,
+      "prompt": "Create and publish a new AVA called 'Acme Support'. The design artifact has model: \"Preview\" set by the design skill. It helps with order tracking.",
+      "expected_output": "The skill reads the design artifact which includes model: 'Preview'. The create_version payload includes the model field set to 'Preview'. The model is passed through as-is without transformation or validation \u2014 it is a simple enum passthrough validated server-side by Sage.",
+      "expected_skill": "ava-build",
+      "files": [],
+      "assertions": [
+        "Design artifact includes \"model\": \"Preview\"",
+        "create_version payload includes model field set to \"Preview\"",
+        "No pre-flight validation error for the model field",
+        "Model field is passed through without transformation"
+      ]
+    },
+    {
+      "id": 14,
+      "prompt": "Please build and publish this AVA.",
+      "expected_output": "The skill's Step 2.5 pre-flight validation runs Check CS1: since this is a new AVA with a DataAction tool and no configuration.comfort_statement and no acknowledgment line in any tool's input_instructions, it issues a non-blocking warning recommending a custom comfort statement, then proceeds to create_version/create_ava/publish_version normally \u2014 the warning does not block the build.",
+      "expected_skill": "ava-build",
+      "lifecycle_fixture": "cs1-warn",
+      "files": [],
+      "assertions": [
+        "Step 2.5 issues a warning (not a block) recommending a contextual comfort statement / configuration.comfort_statement.enabled: false, since the artifact has a DataAction tool but no comfort statement customization",
+        "create_version IS still called \u2014 the warning does not block the build",
+        "create_ava and publish_version proceed normally after the warning",
+        "The warning explains how the author could add a comfort statement (an acknowledgment line plus disabling the platform default), in substance \u2014 the exact phrasing (e.g. mentioning the design skill by name) is not required"
+      ]
+    },
+    {
+      "id": 15,
+      "prompt": "Please build and publish this AVA.",
+      "expected_output": "The skill's Step 2.5 pre-flight validation runs Check CS1 and finds the artifact already has a custom acknowledgment and configuration.comfort_statement configured, so no warning is issued. The disabled comfort-statement setting from the artifact carries through into the create_version call's definition (the MCP tool's own parameter schema may render the field as settings.comfortStatement rather than the artifact's configuration.comfort_statement key \u2014 either is fine, the value is what matters), and the build proceeds to publish.",
+      "expected_skill": "ava-build",
+      "lifecycle_fixture": "cs1-no-warn",
+      "files": [],
+      "assertions": [
+        "No CS1 warning is issued \u2014 the artifact already has an acknowledgment line and configuration.comfort_statement configured",
+        "The create_version call's definition disables the platform comfort statement (e.g. settings.comfortStatement.enabled: false, or the artifact's own configuration.comfort_statement.enabled: false key \u2014 either form is acceptable, since the MCP tool's own schema may rename the field), matching the artifact's disabled setting \u2014 the value must be false, regardless of which literal key name carries it",
+        "create_version is called without delay",
+        "publish_version proceeds normally"
+      ]
+    },
+    {
+      "id": 16,
+      "prompt": "Please build and publish this AVA.",
+      "expected_output": "The skill's Step 2.5 pre-flight validation runs Check CS1, infers from the role text that this AVA is chat-only (no voice/phone/call mentioned, chat explicitly stated), and skips the comfort-statement warning entirely \u2014 a comfort statement never plays for a chat-only AVA, so recommending one would be a no-op. No warning is emitted, and the build proceeds to create_version/create_ava/publish_version normally.",
+      "expected_skill": "ava-build",
+      "lifecycle_fixture": "cs1-chat-only",
+      "files": [],
+      "assertions": [
+        "Check CS1 infers chat-only channel from the role text (no voice/phone/call signal, explicit chat/text/messaging signal)",
+        "No comfort-statement warning is issued, because the AVA is chat-only and the recommendation would be a no-op",
+        "create_version is still called without any delay or blocking behavior related to comfort statements",
+        "create_ava and publish_version proceed normally"
+      ]
+    },
+    {
+      "id": 17,
+      "prompt": "Create the AVA from design artifact. The artifact defines its tools and types in the attached fixture.",
+      "expected_output": "The skill's Step 2.5 pre-flight validation detects the T9 violation: End Context mapped property 'customer_id' has a mapping root of 'InputData', which is not a Data Action tool's output type (only 'OrderResult' would be valid here). It blocks before calling create_version and reports the specific field to fix.",
+      "expected_skill": "ava-build",
+      "files": [
+        "files/t9-end-context-mapping-root-design-artifact.json"
+      ],
+      "assertions": [
+        "Step 2.5 pre-flight validation detects the End Context mapping-root violation for property 'customer_id' (T9)",
+        "create_version is NOT called \u2014 the violation is caught before any API round-trip",
+        "The skill explains the mapping root must be a Data Action tool's output type, not 'InputData'",
+        "The skill recommends changing the mapping root to 'OrderResult', the lookup_order tool's actual output type"
+      ]
+    },
+    {
+      "id": 18,
+      "prompt": "Create the AVA from design artifact. The artifact defines its tools in the attached fixture.",
+      "expected_output": "The skill's Step 2.5 pre-flight validation detects the L16 violation: contextRetentionEnabled is set on 'search_policies', a KnowledgeBase tool, where it is not valid. It blocks before calling create_version and reports the specific tool to fix. The valid contextRetentionEnabled setting on the DataAction tool 'process_payment' is not flagged.",
+      "expected_skill": "ava-build",
+      "files": [
+        "files/l16-context-retention-on-knowledge-tool-design-artifact.json"
+      ],
+      "assertions": [
+        "Step 2.5 pre-flight validation detects the contextRetentionEnabled violation on 'search_policies' (L16)",
+        "create_version is NOT called \u2014 the violation is caught before any API round-trip",
+        "The skill explains contextRetentionEnabled is only valid on DataAction tools",
+        "The skill does not flag 'process_payment', whose contextRetentionEnabled setting is valid"
+      ]
+    }
+  ]
+}

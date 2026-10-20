@@ -1,0 +1,74 @@
+{
+  "skill_name": "ava-test",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Create a turn-based test scenario for the 'Acme Order Assistant' (agent_id: agt-123). The scenario should verify that a customer asking 'What is the status of order 98765?' gets the order status back. The AVA should call the lookup_order tool with order_id='98765'.",
+      "expected_output": "The skill authors a scenario JSON with x_eval (persona, goal, turns, reference_trajectory, rubric) and writes it to .ava-lifecycle/<slug>/test-cases/<kebab-case-slug>.json. It validates mock DataActions for reference_trajectory tools.",
+      "expected_skill": "ava-test",
+      "files": [],
+      "assertions": [
+        "Scenario file is written under .ava-lifecycle/<slug>/test-cases/",
+        "x_eval includes reference_trajectory with lookup_order and order_id 98765",
+        "x_eval.rubric has assertions for goal, tool_use, guardrail, and tone_format",
+        "Mock DataActions are validated via create_mock_data_action / replace_mock_responses when needed"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Create a test scenario for the 'Acme Order Assistant' with an open-ended actor turn about a missing order, max_turns=5.",
+      "expected_output": "The skill writes a scenario with x_eval.max_turns=5 and at least one actor turn. It assembles a test set JSON under .ava-lifecycle/<slug>/test-sets/ referencing {test_case_id} objects.",
+      "expected_skill": "ava-test",
+      "files": [],
+      "assertions": [
+        "Scenario persisted to test-cases/ with x_eval.max_turns set to 5",
+        "Test set references scenarios as {test_case_id: '<slug>'} objects, not bare strings",
+        "Test set written to .ava-lifecycle/<slug>/test-sets/"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I have a scripted payment-flow scenario. The reference_trajectory expects process_payment with amount=50.00 and account_id='ACC-999'. Add the trajectory entry and validate the mock DataAction.",
+      "expected_output": "The skill adds a reference_trajectory entry for process_payment with exact param matching and confirms mock responses exist via create_mock_data_action / replace_mock_responses.",
+      "expected_skill": "ava-test",
+      "files": [],
+      "assertions": [
+        "reference_trajectory entry includes process_payment with params amount and account_id",
+        "match mode is exact or presence as appropriate",
+        "Mock DataAction setup is validated before persisting the scenario file"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Create a turn-based test scenario for the published 'eval-shared-lifecycle Agent'. The scenario should verify that a customer who provides login code 12345678 is authenticated via the Authenticate Customer tool, then hears their balance from the Get Account Details tool. Do not pause to ask for confirmation before saving \u2014 validate the mock DataActions and persist the scenario file directly.",
+      "expected_output": "The skill reads the real design-artifact.json for the published agent, authors a scenario JSON with x_eval (persona, goal, turns, reference_trajectory covering both Authenticate Customer and Get Account Details in order, rubric), and writes it to .ava-lifecycle/fixture-ava/test-cases/<kebab-case-slug>.json.",
+      "expected_skill": "ava-test",
+      "files": [],
+      "lifecycle_fixture": "published",
+      "bootstrap": {
+        "slug": "fixture-ava",
+        "ava_name": "eval-shared-lifecycle Agent",
+        "publish_fixture": "shared-lifecycle/bootstrap"
+      },
+      "assertions": [
+        "Scenario file is written under .ava-lifecycle/fixture-ava/test-cases/",
+        "x_eval.reference_trajectory includes Authenticate Customer before Get Account Details",
+        "x_eval.rubric has an assertion for completing authentication before balance lookup",
+        "The skill does not report the design artifact or agent as missing"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "I have a scripted order-status scenario for 'Acme Order Assistant'. Its design sends the order's status back to the flow when the conversation ends. Add an expected_output_data entry so the scenario also verifies order_status comes back as 'Shipped'.",
+      "expected_output": "The skill adds an expected_output_data entry ({name: 'order_status', value: 'Shipped'}) to the scenario's x_eval alongside its existing reference_trajectory, and persists the updated scenario file.",
+      "expected_skill": "ava-test",
+      "files": [],
+      "assertions": [
+        "x_eval.expected_output_data includes an entry with name 'order_status' and value 'Shipped'",
+        "expected_output_data is added alongside reference_trajectory, not replacing it",
+        "The updated scenario file is persisted under .ava-lifecycle/<slug>/test-cases/"
+      ],
+      "lifecycle_fixture": "with-output-data"
+    }
+  ]
+}

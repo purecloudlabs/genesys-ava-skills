@@ -1,0 +1,14 @@
+{
+  "name": "genesys-ava",
+  "description": "Genesys AVA plugins for Claude Code",
+  "owner": {
+    "name": "Genesys Cloud Services, Inc."
+  },
+  "plugins": [
+    {
+      "name": "ava-harness",
+      "source": "./plugins/ava-harness",
+      "description": "AVA skills, subagents, and MCP server"
+    }
+  ]
+}

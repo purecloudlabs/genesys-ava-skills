@@ -1,0 +1,11 @@
+{
+  "_meta": {
+    "slug": "acme-voice-account-assistant",
+    "agent_id": "00000000-0000-4000-8000-000000000001",
+    "gc_version": "1.0",
+    "last_synced_at": "2026-09-22T12:00:00+00:00"
+  },
+  "agent_name": "Acme Voice Account Assistant",
+  "version": "1.0",
+  "publish_status": "TestReady"
+}

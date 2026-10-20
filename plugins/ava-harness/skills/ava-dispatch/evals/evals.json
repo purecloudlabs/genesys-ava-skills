@@ -1,0 +1,44 @@
+{
+  "skill_name": "ava-dispatch",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I want to build a new AVA for our telecom company. It should handle account balance inquiries and payment processing.",
+      "expected_output": "The skill calls list_resources(resource_type=\"ava\"), finds no existing AVAs (or presents results), and offers to start the new AVA creation flow by routing to the design skill with mode=new.",
+      "expected_skill": "ava-dispatch",
+      "files": [],
+      "assertions": [
+        "list_resources MCP tool is called with resource_type=\"ava\" to establish org context",
+        "User is offered the option to create a new AVA",
+        "Handoff to design skill is mentioned with mode=new"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "I need to update my existing Order Status AVA. The instructions are too verbose and I want to tighten them up.",
+      "expected_output": "The skill calls list_resources(resource_type=\"ava\"), presents the existing AVAs, asks the author to select the target AVA, classifies the change as a targeted edit, and routes to the design skill in update mode.",
+      "expected_skill": "ava-dispatch",
+      "files": [],
+      "assertions": [
+        "list_resources MCP tool is called with resource_type=\"ava\"",
+        "User is prompted to select which AVA to update",
+        "Change is classified as targeted edit (instructions update)",
+        "Routed to design skill in update mode",
+        "Handoff includes mode=update and the selected agent_id"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I want to add a new tool to my existing Billing AVA — it needs to be able to process refunds through a new DataAction we just set up.",
+      "expected_output": "The skill calls list_resources(resource_type=\"ava\"), identifies the Billing AVA, classifies the change as a new capability addition, and routes to the design skill in update mode — design handles tool discovery internally.",
+      "expected_skill": "ava-dispatch",
+      "files": [],
+      "assertions": [
+        "list_resources MCP tool is called with resource_type=\"ava\"",
+        "Change involving new tool is identified",
+        "Routed to design skill in update mode",
+        "Handoff includes the selected agent_id and change description"
+      ]
+    }
+  ]
+}

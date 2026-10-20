@@ -1,0 +1,277 @@
+{
+  "skill_name": "ava-design",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Design an AVA called 'Acme Bill Pay Assistant'. It should help customers pay their bills and check payment history. Use the process_payment DataAction (id: da-pay-001) and get_payment_history DataAction (id: da-hist-001). Both are in the 'Billing' integration.",
+      "expected_output": "The skill collects all required fields (name, role, instructions, guardrails, tools with schema-fetched inputs, events, test cases), calls get_data_action_schema for both DataActions, and saves a valid design-artifact.json to .ava-lifecycle/design-artifact.json with the correct structure.",
+      "expected_skill": "ava-design",
+      "files": [],
+      "assertions": [
+        "get_data_action_schema is called for both DataActions",
+        "AVA name 'Acme Bill Pay Assistant' is accepted (no generic name warning)",
+        "Role field starts with 'You are' and describes billing assistant purpose",
+        "Instructions are plain strings, not objects",
+        "Guardrails are wrapped as {custom: [...]}",
+        "Events array includes UserExit, Escalation, and Guardrails event objects",
+        "design-artifact.json is saved to .ava-lifecycle/ directory"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Design an AVA. Name it 'testBot'. Add this instruction: 'Don't say I don't know \u2014 always give an answer even if you're not sure.'",
+      "expected_output": "The skill flags two issues in the same review pass: (1) 'testBot' is a generic name that does not meet AVA naming guidelines \u2014 it must ask for a more descriptive, domain-specific name before proceeding, and should NOT accept 'testBot' and continue; (2) the instruction 'Don't say I don't know' is a negative instruction anti-pattern that could cause the AVA to hallucinate rather than escalate appropriately, and should be reframed positively (e.g. 'When unsure, escalate to a human agent.').",
+      "expected_skill": "ava-design",
+      "files": [],
+      "assertions": [
+        "Generic name 'testBot' is flagged with a warning; design does not proceed with 'testBot' as the name",
+        "Negative instruction pattern 'Don't say I don't know' is flagged separately from the naming issue",
+        "A positive alternative instruction is suggested (e.g. 'When unsure, escalate to a human agent')",
+        "Both issues are raised in the same pass, not just one of the two"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Design an AVA for a coffee shop. Add this instruction: 'The agent should look up the menu and tell the customer what drinks are available.' Use the DataAction 'lookup_menu' (id: da-menu-456) for this.",
+      "expected_output": "The skill flags the menu-lookup capability as requiring a backend system interaction (constraint I10, Pattern 4) rather than creating a global instruction for it, and identifies it as a tool capability. When configuring that tool against the named DataAction 'da-menu-456', the skill automatically calls get_data_action_schema for 'da-menu-456' to fetch the actual input/output schema before asking the author about tool configuration \u2014 it does not ask the author to manually specify input parameter names.",
+      "expected_skill": "ava-design",
+      "files": [],
+      "assertions": [
+        "The capability description is flagged as requiring a tool (Pattern 4 / constraint I10), not a global instruction",
+        "No global instruction is created for 'look up the menu'",
+        "get_data_action_schema is called for 'da-menu-456' automatically when the tool is added",
+        "Input parameters for the tool are populated from the fetched schema, not manually entered",
+        "Tool is added to the design with correct inputs derived from schema"
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "Design an AVA for a coffee shop. Add a guardrail: 'Block customer requests about competitor coffee shops.'",
+      "expected_output": "The skill flags this as a scope exclusion that belongs in the role, not a guardrail (constraint G3). It should apply the decision test: a well-intentioned customer asking about a competitor is not adversarial, harmful, or compliance-critical. The skill should suggest moving this to the role as a conversational decline instead.",
+      "expected_skill": "ava-design",
+      "files": [],
+      "assertions": [
+        "The proposed guardrail is flagged as a scope exclusion (constraint G3)",
+        "The G3 decision test is applied: well-intentioned customer asking about competitors should not trigger a violation",
+        "The skill suggests placing this in the role instead of as a guardrail",
+        "The skill explains that guardrails are for adversarial, harmful, or compliance-critical inputs only"
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "Design an AVA for a hospital support desk. Add a guardrail: 'Block customer requests for medical diagnosis or medication dosage advice.' The compliance team requires this to be deterministically enforced.",
+      "expected_output": "The skill accepts this as a valid guardrail because it meets all three G3 escalation criteria: the behavior must never happen (compliance mandate), conversational handling is insufficient (compliance requires deterministic enforcement), and it needs pre-turn filter blocking. The skill should confirm with the author and accept the guardrail.",
+      "expected_skill": "ava-design",
+      "files": [],
+      "assertions": [
+        "The guardrail is accepted as valid because compliance requires deterministic enforcement",
+        "The G3 escalation criteria are satisfied (all three met)",
+        "The skill does NOT suggest moving this to the role since the author confirmed compliance-level enforcement is needed",
+        "The guardrail is phrased correctly per G1 (blocks customer input, not agent behavior)"
+      ]
+    },
+    {
+      "id": 8,
+      "prompt": "Update the existing AVA Acme Voice Account Assistant. I want to add a new knowledge base tool for product FAQs.",
+      "expected_output": "The skill loads the existing spec with model: 'Stable' and proceeds directly with the requested knowledge base tool addition. It shows no notice or prompt about the model, the Preview model, or any transition, and does not ask the author to choose a model. The design artifact ends with model: 'Preview'.",
+      "expected_skill": "ava-design",
+      "files": [],
+      "max_turns": 25,
+      "lifecycle_fixture": "acme-voice-account-stable",
+      "goals": [
+        "The AVA is called 'Acme Voice Account Assistant'. It already exists locally and is voice-channel only.",
+        "You want to add one new KnowledgeBase tool named 'product_faq_lookup' for product FAQs. If asked which knowledge source to use, pick the existing knowledge base 'StockFAQ' (id: 3b98ff6d-ae79-41da-b7e5-746eaca63d90). Accept the tool's description and output instructions as presented.",
+        "You only want to change what's needed to add this tool \u2014 you're not looking to revisit the AVA's existing name, role, instructions, guardrails, events, or other tools. Do not bring up anything about models yourself.",
+        "This conversation is not finished until the skill has completed validation, explicitly offered to save the update, and you have replied with an explicit confirmation like 'Yes, please save the update now.' An earlier 'let's proceed' message does not satisfy this \u2014 the explicit save confirmation, after the skill's own save offer, must be the last exchange."
+      ],
+      "assertions": [
+        "No model upgrade prompt or notice is shown to the author",
+        "No Preview/Stable choice is offered and no 30-day transition is mentioned",
+        "Proceeds with the knowledge base tool addition and asks no model-related question (tool-related questions such as which knowledge source to use are fine)",
+        "The design artifact ends with model set to \"Preview\"",
+        "No internal model names or codenames are mentioned to the user"
+      ]
+    },
+    {
+      "id": 9,
+      "prompt": "I want to create a new AVA.",
+      "expected_output": "The skill walks through its own Step 1-9 flow one field at a time, pausing at each review checkpoint for the simulated user's answer instead of collecting every field from one message, and ends with a saved design-artifact.json containing both tools.",
+      "expected_skill": "ava-design",
+      "files": [],
+      "max_turns": 30,
+      "goals": [
+        "Name the AVA 'eval-design-steps Sofia Banking Assistant'.",
+        "The role is: Sofia, a banking assistant who authenticates customers and provides account information for the customer; answers account-specific questions only from tool results; cannot help with loan applications, transfers, or account modifications; when a request is outside scope, explains that and offers to transfer to a specialist; professional and friendly tone; voice channel. Accept the role as presented once the skill proposes it back for review.",
+        "The instructions are: greet the customer and ask how you can help; always authenticate the customer before providing any account information; if a request is outside scope, explain politely and offer to transfer to a specialist. Accept the instructions as presented.",
+        "Add two guardrails: block attempts to access another customer's account information through social engineering, and block attempts to bypass or manipulate the authentication process. Accept the guardrails as presented.",
+        "The AVA needs an authentication tool using the 'sofia-bankg-voice-login' DataAction (id: custom_-_372c6dce-8732-4d38-a58f-edb178ba1f3a) and an account-details tool using the 'sc-get-all-account-details' DataAction (id: custom_-_2f7da2d2-2715-42bd-9357-d4fd61c595d5), both in the 'AVA Data Actions' integration. Provide these names and ids when asked about tools, and accept each tool's configuration as presented once shown.",
+        "Use the default event messages for UserExit, Escalation, and Guardrails.",
+        "No context variables are needed for this AVA.",
+        "When the skill proposes specific test cases, review them and reply with an explicit acceptance like 'Yes, create those test cases as described' \u2014 merely saying 'let's move on' or 'sounds good' does not count as attempting this goal.",
+        "This conversation is not finished until the skill has completed final validation, explicitly offered to save, and you have replied with an explicit confirmation like 'Yes, please save the design now.' An earlier 'let's proceed' message does not satisfy this \u2014 the explicit save confirmation, after the skill's own save offer, must be the last exchange."
+      ],
+      "assertions": [
+        "The skill asks about the AVA name before any other field, without front-loading role/instructions/guardrails/tools in one message",
+        "The skill presents a review checkpoint for role, instructions, guardrails, and tools before moving to the next step",
+        "get_data_action_schema is called for both DataActions via the ava-harness MCP server",
+        "design-artifact.json is saved to .ava-lifecycle/ with both tools present",
+        "The skill does not report any error creating or saving the design"
+      ]
+    },
+    {
+      "id": 10,
+      "prompt": "I want to create a new AVA.",
+      "expected_output": "The skill adds a contextual acknowledgment (e.g. 'Before calling this tool, let the customer know you're checking their order.') to the tool's input_instructions rather than inventing a new field. It also sets configuration.comfort_statement.enabled to false in the saved design artifact to disable the platform's default wait-experience statement, since the author is handling the acknowledgment themselves. The author is not told this combination is unsupported.",
+      "expected_skill": "ava-design",
+      "files": [],
+      "max_turns": 30,
+      "goals": [
+        "Name the AVA 'Acme Order Assistant'.",
+        "The role is: a voice-channel order-status assistant for Acme Retail; helps customers check their order status from tool results; cannot help with returns, exchanges, or payment disputes; when a request is outside scope, explain and offer to transfer to a specialist; professional and friendly tone. Accept the role as presented.",
+        "The instructions are: greet the customer and ask how you can help; always look up the order before answering status questions; if a request is outside scope, explain and offer to transfer. Accept the instructions as presented.",
+        "No custom guardrails are needed beyond the platform defaults.",
+        "Add a tool named 'check_order_status' for the real DataAction 'Grok_check_order_status' (id: custom_-_96909870-5847-4026-9276-012b8f153f1c, category: 'Grok Web Services Data Actions'). You want the agent to say a quick acknowledgment before calling it \u2014 letting the customer know it's checking their order \u2014 and you want to turn off the platform's default wait message for this AVA since you're handling the acknowledgment yourself.",
+        "Use the default event messages.",
+        "No context variables are needed.",
+        "When the skill proposes specific test cases, review them and reply with an explicit acceptance like 'Yes, create those test cases as described' \u2014 merely saying 'let's move on' or 'sounds good' does not count as attempting this goal.",
+        "This conversation is not finished until the skill has completed final validation, explicitly offered to save, and you have replied with an explicit confirmation like 'Yes, please save the design now.' An earlier 'let's proceed' message does not satisfy this \u2014 the explicit save confirmation, after the skill's own save offer, must be the last exchange."
+      ],
+      "assertions": [
+        "A contextual acknowledgment line is added to the tool's input_instructions, not a new/invented field",
+        "configuration.comfort_statement.enabled is set to false in the saved design artifact",
+        "The skill does not tell the author this pattern is unsupported",
+        "design-artifact.json is saved with the correct structure"
+      ]
+    },
+    {
+      "id": 11,
+      "prompt": "I want to create a new AVA.",
+      "expected_output": "Without the author asking about wait experience or comfort statements at all, the skill proactively asks \u2014 once, the first time this DataAction tool is configured \u2014 whether the author wants a custom contextual acknowledgment (e.g. 'Checking your order now') instead of the platform's default wait message, per constraint C4. The skill does not silently skip this and does not ask more than once.",
+      "expected_skill": "ava-design",
+      "files": [],
+      "max_turns": 15,
+      "goals": [
+        "Name the AVA 'Acme Order Tracker'.",
+        "The role is: a voice-channel order-status assistant for Acme Retail; helps customers check their order status from tool results; cannot help with returns or exchanges; when a request is outside scope, explain and offer to transfer to a specialist; professional and friendly tone. Accept the role as presented.",
+        "The instructions are: greet the customer and ask how you can help; always look up the order before answering status questions. Accept the instructions as presented.",
+        "No custom guardrails are needed beyond the platform defaults.",
+        "Add a tool named 'check_order_status' for the real DataAction 'Grok_check_order_status' (id: custom_-_96909870-5847-4026-9276-012b8f153f1c, category: 'Grok Web Services Data Actions'). Do not bring up wait messages or comfort statements yourself under any circumstance \u2014 if the skill proactively raises the topic, respond naturally (accepting is fine), but you must never raise it first. This goal is only attempted once you have actually replied to that question (or, if the skill never raises it, once the tool's basic configuration \u2014 description and inputs \u2014 has been presented back to you); the skill merely asking the question is not enough on its own.",
+        "This case is only about the comfort-statement question during tool configuration \u2014 once that is resolved (asked-and-answered, or never asked because the tool is fully configured), the conversation's purpose is complete. Do not continue into events, context variables, test cases, or saving; there is nothing further for you to do."
+      ],
+      "assertions": [
+        "The skill proactively raises the contextual comfort statement / wait-message option when configuring the first DataAction tool, without the author asking about it",
+        "The question is asked at most once during the session, not repeated",
+        "If the author declines or ignores it, configuration.comfort_statement is left unset and no acknowledgment line is fabricated",
+        "The skill does not report this recommendation as an error or block on it \u2014 it is a suggestion, not a requirement"
+      ]
+    },
+    {
+      "id": 12,
+      "prompt": "I want to create a new AVA.",
+      "expected_output": "Because the AVA's Mode is chat-only (no voice/DTMF), the skill never raises Check 13 / constraint C4's proactive comfort-statement question when configuring the check_order_status tool \u2014 comfort statements only ever play for voice/DTMF input, so recommending one for a chat-only AVA would be a no-op. The rest of Step 5 (tool configuration: description, inputInstructions, outputInstructions, errors) proceeds normally. The saved design-artifact.json has no configuration.comfort_statement field and no wait-experience acknowledgment line added to check_order_status's input_instructions.",
+      "expected_skill": "ava-design",
+      "files": [],
+      "max_turns": 30,
+      "goals": [
+        "Name the AVA 'Acme Chat Order Tracker'.",
+        "This AVA is chat-only \u2014 text/messaging channel only, never used on a phone call or IVR. State this explicitly when asked about channel or mode.",
+        "The role is: a chat-only digital assistant for Acme Retail that helps customers check their order status from tool results; cannot help with returns or exchanges; when a request is outside scope, explain and offer to transfer to a specialist. Accept the role as presented.",
+        "The instructions are: greet the customer and ask how you can help; always look up the order before answering status questions. Accept the instructions as presented.",
+        "No custom guardrails are needed beyond the platform defaults.",
+        "Add a tool named 'check_order_status' for the real DataAction 'Grok_check_order_status' (id: custom_-_96909870-5847-4026-9276-012b8f153f1c, category: 'Grok Web Services Data Actions').",
+        "Use the default event messages.",
+        "No context variables are needed.",
+        "When the skill proposes specific test cases, review them and reply with an explicit acceptance like 'Yes, create those test cases as described' \u2014 merely saying 'let's move on' or 'sounds good' does not count as attempting this goal.",
+        "This conversation is not finished until the skill has completed final validation, explicitly offered to save, and you have replied with an explicit confirmation like 'Yes, please save the design now.' An earlier 'let's proceed' message does not satisfy this \u2014 the explicit save confirmation, after the skill's own save offer, must be the last exchange."
+      ],
+      "assertions": [
+        "The AVA's Mode is established as chat-only (no voice/DTMF) from the author's description",
+        "Check 13 / constraint C4's proactive comfort-statement question is never asked, because the AVA is chat-only",
+        "configuration.comfort_statement is not set anywhere in the saved design artifact",
+        "No wait-experience acknowledgment line is added to check_order_status's input_instructions",
+        "Tool configuration (description, inputInstructions, outputInstructions, errors) for check_order_status still proceeds normally despite the skipped question"
+      ]
+    },
+    {
+      "id": 13,
+      "prompt": "I want to update an existing AVA.",
+      "expected_output": "Because this is the AVA's first-ever DataAction tool (even though the AVA itself already exists) and its Mode is voice, the skill proactively raises Check 13 / constraint C4's comfort-statement question exactly as it would for a brand-new AVA \u2014 this is the one Mode C exception the rule carves out. Since the author accepts and supplies wording, the skill adds the acknowledgment line to lookup_account_balance's input_instructions and sets configuration.comfort_statement.enabled to false in the updated design artifact.",
+      "expected_skill": "ava-design",
+      "files": [],
+      "max_turns": 25,
+      "lifecycle_fixture": "acme-voice-account",
+      "bootstrap": {
+        "slug": "acme-voice-account-assistant",
+        "ava_name": "Acme Voice Account Assistant",
+        "publish_fixture": "acme-voice-account/bootstrap"
+      },
+      "goals": [
+        "The AVA is called 'Acme Voice Account Assistant'. The current spec loaded from Sage is voice-channel only and has never had a DataAction tool \u2014 it currently only has a KnowledgeBase tool for FAQs.",
+        "You want to add a new DataAction tool named 'lookup_account_balance', wired to the real DataAction 'PersonalBanking-GetAccountBalance' (id: custom_-_e8885727-1107-488e-bd9a-a7078e6c1ba6, category: 'AVA-Harness-Mock-Echo-DataAction') \u2014 this will be this AVA's first-ever DataAction tool.",
+        "If the skill asks about the wait experience for this tool, you'd like a custom acknowledgment like 'Let me check your balance now' instead of the platform default.",
+        "You only want to change what's needed to add this tool \u2014 you're not looking to revisit the AVA's existing name, role, instructions, guardrails, or other tools.",
+        "This conversation is not finished until the skill has completed validation, explicitly offered to save the update, and you have replied with an explicit confirmation like 'Yes, please save the update now.' An earlier 'let's proceed' message does not satisfy this \u2014 the explicit save confirmation, after the skill's own save offer, must be the last exchange."
+      ],
+      "assertions": [
+        "The skill recognizes this as a Mode C update session, only touching the fields the author named (the new tool), not re-collecting unrelated fields",
+        "Check 13 / constraint C4 fires for this update because it is the AVA's first-ever DataAction tool, per the documented Mode C exception",
+        "A contextual acknowledgment line (e.g. mentioning checking the balance) is added to lookup_account_balance's input_instructions",
+        "configuration.comfort_statement.enabled is set to false in the saved/updated design artifact"
+      ]
+    },
+    {
+      "id": 14,
+      "prompt": "I want to create a new AVA.",
+      "expected_output": "When asked whether anything needs to be sent back to the flow at the end of the conversation (Step 7a, End Context), the author says yes \u2014 the order status should be returned to Architect. The skill fetches the check_order_status tool's output schema, proposes a mapped End Context property whose mapping root is that tool's declared output type (not an arbitrary type), and adds it to a single OutputData type with direction agentOutput in the saved design artifact.",
+      "expected_skill": "ava-design",
+      "files": [],
+      "max_turns": 25,
+      "goals": [
+        "Name the AVA 'Acme Order Tracker End Context'.",
+        "The role is: a chat-only order-status assistant for Acme Retail; helps customers check their order status from tool results; cannot help with returns or exchanges; when a request is outside scope, explain and offer to transfer to a specialist; professional and friendly tone. Accept the role as presented.",
+        "The instructions are: greet the customer and ask how you can help; always look up the order before answering status questions. Accept the instructions as presented.",
+        "No custom guardrails are needed beyond the platform defaults.",
+        "Add a tool named 'check_order_status' for the real DataAction 'Grok_check_order_status' (id: custom_-_96909870-5847-4026-9276-012b8f153f1c, category: 'Grok Web Services Data Actions').",
+        "Use the default event messages.",
+        "No start context variables are needed.",
+        "When asked whether anything needs to be sent back to the flow when the conversation ends, say yes: the order's status should be sent back to Architect so the flow can branch on it. Let the skill propose which specific field from the tool's output to use, and accept its proposal once shown.",
+        "When the skill proposes specific test cases, review them and reply with an explicit acceptance like 'Yes, create those test cases as described' \u2014 merely saying 'let's move on' or 'sounds good' does not count as attempting this goal.",
+        "This conversation is not finished until the skill has completed final validation, explicitly offered to save, and you have replied with an explicit confirmation like 'Yes, please save the design now.' An earlier 'let's proceed' message does not satisfy this \u2014 the explicit save confirmation, after the skill's own save offer, must be the last exchange."
+      ],
+      "assertions": [
+        "The skill asks about End Context (Step 7a) after start context and before test cases, framed as optional",
+        "The skill fetches or reuses check_order_status's output schema before proposing an End Context property from it",
+        "The saved design artifact contains exactly one type named OutputData with direction agentOutput",
+        "The proposed End Context property has a mapping whose first element is check_order_status's declared output type name, not an arbitrary or invented type",
+        "The skill does not fabricate an End Context property the author did not ask for or approve"
+      ]
+    },
+    {
+      "id": 15,
+      "prompt": "I want to create a new AVA.",
+      "expected_output": "When configuring the process_payment tool, the skill raises constraint L16 (contextRetentionEnabled is DataAction-only) because the tool's purpose implies it must not be silently repeated after a long conversation prunes its history, and proposes setting contextRetentionEnabled: false on it. The skill does not raise or set contextRetentionEnabled on check_order_status, a plain lookup tool.",
+      "expected_skill": "ava-design",
+      "files": [],
+      "max_turns": 25,
+      "goals": [
+        "Name the AVA 'Acme Billing Assistant'.",
+        "The role is: a chat-only billing assistant for Acme Retail; helps customers check their order status and process one-time bill payments; professional and friendly tone. Accept the role as presented.",
+        "The instructions are: greet the customer and ask how you can help; confirm the amount before processing any payment. Accept the instructions as presented.",
+        "No custom guardrails are needed beyond the platform defaults.",
+        "Add a tool named 'check_order_status' for the real DataAction 'Grok_check_order_status' (id: custom_-_96909870-5847-4026-9276-012b8f153f1c, category: 'Grok Web Services Data Actions').",
+        "Add a second tool named 'process_payment' for the DataAction 'process_payment' (id: da-pay-001). If the skill raises a concern about this tool's messages being safely droppable from a long conversation versus needing to be protected so the agent never silently repeats the payment, say yes it must be protected, and accept the proposed contextRetentionEnabled: false setting.",
+        "Use the default event messages.",
+        "No start context variables are needed.",
+        "No End Context is needed; the flow does not need anything returned.",
+        "When the skill proposes specific test cases, review them and reply with an explicit acceptance like 'Yes, create those test cases as described' \u2014 merely saying 'let's move on' or 'sounds good' does not count as attempting this goal.",
+        "This conversation is not finished until the skill has completed final validation, explicitly offered to save, and you have replied with an explicit confirmation like 'Yes, please save the design now.' An earlier 'let's proceed' message does not satisfy this \u2014 the explicit save confirmation, after the skill's own save offer, must be the last exchange."
+      ],
+      "assertions": [
+        "The skill raises constraint L16 specifically when configuring process_payment, not when configuring check_order_status",
+        "The saved design artifact sets contextRetentionEnabled (or context_retention_enabled) to false on the process_payment tool",
+        "The saved design artifact does not set contextRetentionEnabled on check_order_status",
+        "The skill does not ask about contextRetentionEnabled for every tool indiscriminately \u2014 only where repeat-call risk is evident"
+      ]
+    }
+  ]
+}

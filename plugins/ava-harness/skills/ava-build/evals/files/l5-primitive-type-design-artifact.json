@@ -1,0 +1,37 @@
+{
+  "_comment": "Mock design-artifact fragment for eval Merge A — one tool pair has the L5 primitive-type trap (update_vehicle), a second, unrelated tool pair (verify_identity/get_records) is correctly wired, so the same pass must catch the real violation without false-positiving on the valid pair. De-leaked: the trap lives in the field values, not a stated label in the prompt.",
+  "types": [
+    {"name": "AccountResult", "direction": "output"},
+    {"name": "AuthToken", "direction": "output"}
+  ],
+  "tools": [
+    {
+      "name": "get_account",
+      "output": {"type": "AccountResult"}
+    },
+    {
+      "name": "update_vehicle",
+      "inputs": [
+        {
+          "source": "ToolOutput",
+          "type": "string",
+          "mapping": ["AccountResult", "vehicle_vin"]
+        }
+      ]
+    },
+    {
+      "name": "verify_identity",
+      "output": {"type": "AuthToken"}
+    },
+    {
+      "name": "get_records",
+      "inputs": [
+        {
+          "source": "ToolOutput",
+          "type": "AuthToken",
+          "mapping": ["AuthToken", "session_token"]
+        }
+      ]
+    }
+  ]
+}

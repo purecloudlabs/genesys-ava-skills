@@ -1,0 +1,12 @@
+{
+  "avas": [
+    {
+      "name": "Acme Order Assistant",
+      "slug": "acme-order-assistant",
+      "agent_id": "00000000-0000-4000-8000-000000000002",
+      "gc_version": "1.0",
+      "local_status": "test-ready",
+      "last_updated": "2026-09-25T12:00:00+00:00"
+    }
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "agent_id": "00000000-0000-4000-8000-000000000001",
+  "name": "Auth Happy Path",
+  "type": "scripted",
+  "language": "en-US",
+  "test_config": {
+    "trajectory": []
+  },
+  "x_eval": {
+    "persona": "A customer calling to check account balance",
+    "goal": "Authenticate with verification code and hear account balance. Done when balance is returned.",
+    "start_context": {},
+    "turns": [
+      {
+        "source": "fixed_user",
+        "text": "Hi"
+      },
+      {
+        "source": "actor",
+        "note": "Provide verification code 12345678 when asked"
+      },
+      {
+        "source": "fixed_user",
+        "text": "12345678"
+      },
+      {
+        "source": "actor",
+        "note": "Ask to show balance when authenticated"
+      },
+      {
+        "source": "fixed_user",
+        "text": "Show my balance"
+      }
+    ],
+    "reference_trajectory": [
+      {
+        "tool": "Authenticate Customer",
+        "params": {},
+        "match": "name",
+        "order": 1
+      },
+      {
+        "tool": "Get Account Details",
+        "params": {},
+        "match": "name",
+        "order": 2
+      }
+    ],
+    "rubric": [
+      {
+        "id": "goal-auth",
+        "dimension": "goal_completion",
+        "assertion": "Customer completes authentication before balance lookup",
+        "weight": 1.0
+      }
+    ],
+    "attempts": 1,
+    "max_turns": 8,
+    "success_threshold": 0.8
+  },
+  "metadata": {
+    "id": "auth-happy-path",
+    "created_at": "2026-09-22T12:00:00+00:00"
+  }
+}
