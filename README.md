@@ -239,6 +239,28 @@ Each authoring session writes to `.ava-lifecycle/` in your project root (gitigno
 
 In a nutshell, `ava-dispatch` compares the last known Genesys Cloud AVA version against the live one and prompts you to pull, continue locally, or start fresh if the AVA was edited elsewhere.
 
+## Troubleshooting authentication
+
+If you hit an authentication error (expired or rejected credentials, 401/403 responses, or the MCP server failing to connect), the quickest fix is to delete the `.ava_mcp/config.toml` file and let the setup recreate it. The location depends on how you installed:
+
+| Setup                                              | Location of `config.toml`                                    |
+| -------------------------------------------------- | ------------------------------------------------------------ |
+| Claude Code                                        | `./.ava_mcp/config.toml` (project root)                      |
+| Kiro (all setups except Kiro Powers)               | `./.ava_mcp/config.toml` (project root)                      |
+| Kiro Powers                                        | `~/.kiro/powers/installed/ava-harness/.ava_mcp/config.toml`  |
+
+Delete it, for example:
+
+```bash
+# Claude Code and Kiro (non-Powers)
+rm ./.ava_mcp/config.toml
+
+# Kiro Powers
+rm ~/.kiro/powers/installed/ava-harness/.ava_mcp/config.toml
+```
+
+Then restart your IDE (or reload MCP). If the problem persists, re-run `ava-mcp setup` to re-enter your Genesys Cloud region and OAuth credentials.
+
 ## License
 
 This code is provided under the MIT license with no maintenance or support. See [LICENSE](./LICENSE).
