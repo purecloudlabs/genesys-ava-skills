@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "ava-harness",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "AVA skills and MCP server for Genesys",
   "author": { "name": "Genesys" },
   "keywords": ["ava", "ava-harness", "genesys", "virtual agent"],
