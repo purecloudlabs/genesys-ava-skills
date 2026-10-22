@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.5.7
+
+Improving CLI commands.
+- Self update ava
+- Sync Skills
+- Auto Install mcp's for claude and kiro
+
 ## 1.5.6
 
 Removed Preview model transition notice; default AVA skills to use Preview model
@@ -38,13 +45,15 @@ A single **`ava-mcp`** command, with a short alias for each subcommand:
 | --------- | ------- | ------ |
 | `ava-mcp serve` | `run` | Start the MCP stdio server — use this in `mcp.json` |
 | `ava-mcp setup` | `init` | Interactive local install wizard |
-| `ava-mcp update [DEST]` | `sync` | Install / refresh AVA skills and subagents |
+| `ava-mcp sync [DEST]` | — | Install / refresh AVA skills and subagents |
+| `ava-mcp update` | — | Upgrade `ava-mcp` itself — a separate command from `sync` |
 | `ava-mcp docs [GUIDE]` | `doc` | Print a bundled offline setup guide |
 
 - `ava-mcp --version` reports the installed version; `ava-mcp <command> --help` documents each subcommand.
-- `ava-mcp update` is interactive on a terminal — run it with no arguments to pick scope and IDE(s). Passing `DEST`, `--yes`, or `--dry-run` runs headless instead.
+- `ava-mcp sync` is interactive on a terminal — run it with no arguments to pick scope and IDE(s). Passing `DEST`, `--yes`, or `--dry-run` runs headless instead.
+- `ava-mcp update` checks for a newer release; on a terminal it shows the version delta and asks once before running the installer (`--yes` skips the prompt and runs immediately; `--check` only reports, never runs; `--force` skips the version check entirely and always reinstalls, for repairing a broken install). Headless runs skip the prompt and run immediately too, since there's no one to ask.
 - `ava-mcp docs` selects a guide positionally: `ava-mcp docs install`, `ava-mcp docs validate`, `ava-mcp docs verify`, or bare for the entry guide.
-- `ava-mcp setup` and `ava-mcp update` check for a newer published wheel before doing anything else. On a terminal they show the version delta and offer to exit so you can update first; headless runs print a one-line stderr warning and continue. Offline or rate-limited lookups are silent.
+- `ava-mcp setup` and `ava-mcp sync` check for a newer published wheel before doing anything else. On a terminal they show the version delta and point you at `ava-mcp update`; headless runs print a one-line stderr warning and continue. Offline or rate-limited lookups are silent.
 
 
 ## 1.4.0
