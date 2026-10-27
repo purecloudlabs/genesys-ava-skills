@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6.0
+
+Added the AVA Navigator skill, sub-agent, and tools.
+
 ## 1.5.7
 
 Improving CLI commands.
