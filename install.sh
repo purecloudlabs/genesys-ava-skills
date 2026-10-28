@@ -2,9 +2,9 @@
 #
 # install.sh — install or update the ava-mcp CLI tools as a uv tool, built
 # from the latest ava_mcp*.whl in the genesys-ava-skills GitHub releases.
-# The wheel currently exposes multiple commands (ava-mcp, ava-mcp-update,
-# ava-mcp-docs, ava-mcp-setup, ...) — `uv tool install` installs all of
-# them, whatever they happen to be, so this script doesn't hardcode names.
+# The wheel exposes a single `ava-mcp` command with subcommands (setup, serve,
+# login, skills sync, upgrade, ...) — `uv tool install` installs whatever
+# entry points the wheel declares, so this script doesn't hardcode names.
 #
 # Usage:
 #   curl -sSL https://raw.githubusercontent.com/purecloudlabs/genesys-ava-skills/main/install.sh | sh
@@ -57,4 +57,4 @@ uv tool update-shell >/dev/null 2>&1 || true
 echo "" >&2
 echo "Done. Open a new terminal, then run any of the below commands." >&2
 echo "To Setup AVA Harness, change to project directory and run ava-mcp setup"
-echo "To Update AVA Harness Skills, change to project directory and run ava-mcp update"
+echo "To Update AVA Harness Skills, change to project directory and run ava-mcp skills sync"
