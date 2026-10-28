@@ -10,23 +10,30 @@ Bring the full Genesys Cloud Agentic Virtual Agent (AVA) lifecycle into your AI 
 ## Quick Start
 
 1. **Install [`uv`](https://docs.astral.sh/uv/getting-started/installation/)** if you don't have it already. (Ensure `uv` is not installed in a virtual environment because the wizard needs access to global Python.)
-2. **Run the setup wizard (Linux/Mac)**:
+2. **Run the installer (Linux/Mac)**:
 
     ```bash
     curl -sSL https://raw.githubusercontent.com/purecloudlabs/genesys-ava-skills/main/install.sh | sh
     ```
-   **Run the setup wizard (Windows)**:
+   **Run the installer (Windows)**:
 
     ```bash
    irm https://raw.githubusercontent.com/purecloudlabs/genesys-ava-skills/main/install.ps1 | iex
     ```
 
-NOTE: If you run into an error around TLS on the install you many need to run the below commands before running the install script.
+NOTE: If you run into an error around TLS on the install you may need to run the below commands before running the install script.
 Windows: `$env:UV_SYSTEM_CERTS = "true"` 
 Linux/MAC: `export UV_SYSTEM_CERTS="true"`
 
-3. **Follow the prompts** — pick your IDE (Cursor, Kiro, or Claude Code), provide your Genesys Cloud region and OAuth credentials, and confirm the install plan.
-4. **Restart your IDE** (or reload MCP), then start a new agent session and say something like:
+3. **Run the setup wizard** from your project directory:
+
+    ```bash
+    ava-mcp setup
+    ```
+
+   Follow the prompts — pick your IDE (Cursor, Kiro, or Claude Code) and confirm the install plan. For Claude Code and Kiro the wizard can register the MCP server for you. The wizard does not sign in.
+4. **Restart your IDE** (or reload MCP). On first start the AVA Harness opens your browser so you can pick your Genesys Cloud region and sign in (approve the app on your first login). See [Signing in](#signing-in).
+5. **Start a new agent session** and say something like:
    > Help me design a new AVA
 
    The `ava-dispatch` skill takes it from there.
@@ -63,45 +70,78 @@ To use these skills with a Genesys Cloud org, you need a role with these permiss
 | `knowledge`    | `knowledgeSetting`                               | `view`                            |
 | `knowledge`    | `source`                                         | `view`                            |
 
-These core grants are always required, and the installation will fail the permissions check if any are missing.
+These core grants are always required. These are role permissions on the signed-in user, and `ava-mcp login` saves nothing if any are missing.
 
-<details>
+Some tool groups need extra, optional permissions. If they are missing, sign-in hides the matching tools automatically (restart your IDE or reload MCP for this to take effect):
 
-<summary>See Optional Permissions</summary>
+| Tool group                | Used by                                                                              | Flag set when a grant is missing      |
+| ------------------------- | ------------------------------------------------------------------------------------ | ------------------------------------- |
+| Mock DataAction authoring | `create_mock_data_action`, `replace_mock_responses`                                  | `AVA_MOCK_DATA_ACTIONS_DISABLED=true` |
+| Knowledge FileUpload      | `ava-knowledge` upload tools                                                         | `AVA_KNOWLEDGE_UPLOAD_DISABLED=true`  |
+| Navigator authoring       | `preview_navigator`, `build_navigator`                                               | `AVA_NAVIGATOR_TOOLS_DISABLED=true`   |
 
-**Mock DataAction authoring** (optional — setup sets `AVA_MOCK_DATA_ACTIONS_DISABLED=true` when any are missing):
+Discovery tools (e.g., `list_resources`, `get_data_action_schema`, `validate_knowledge`) stay available either way.
 
-| Domain         | Entity        | Actions                            |
-| -------------- | ------------- | ---------------------------------- |
-| `integrations` | `integration` | `view`, `add`, `edit`              |
-| `integrations` | `action`      | `add`, `edit`, `delete`, `execute` |
-
-**Knowledge Fabric FileUpload** (optional — setup sets `AVA_KNOWLEDGE_UPLOAD_DISABLED=true` when any are missing):
-
-| Domain      | Entity             | Actions                         |
-| ----------- | ------------------ | ------------------------------- |
-| `knowledge` | `source`           | `view`, `add`                   |
-| `knowledge` | `synchronization`  | `view`, `add`, `edit`, `upload` |
-| `knowledge` | `knowledgeSetting` | `view`, `add`, `edit`           |
-
-Mock DataAction authoring and Knowledge Fabric FileUpload tools are enabled by default. If the OAuth client is missing those extra grants, setup disables the matching tools automatically. Discovery tools (e.g., `list_resources`, `get_data_action_schema`, `validate_knowledge`) stay available either way.
-
-</details>
+See [docs/permissions.md](./docs/permissions.md) for the full permission tables for each group and the OAuth scopes you need if you bring your own OAuth client.
 
 ## Installation
 
-The install script downloads the wheel and runs `ava-mcp setup` automatically. During the configuration, the wizard asks you for the following:
+The install script installs the `ava-mcp` CLI as a `uv` tool. Then run `ava-mcp setup` from your project directory. During the configuration, the wizard asks you for the following:
 
-| Decision               | Values                                                                                                                              |
-| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| Install scope          | `project` (this repo, recommended) or `user` (all projects; not recommended)                                                        |
-| IDE(s)                 | Cursor, Kiro, and Claude Code                                                                                                       |
-| Actions                | Install MCP and/or Install/refresh skills and subagents                                                                             |
-| Habitat                | public API region such as prod-use1 (stored as environment variable `AVA_HABITAT`) — asked only for Install MCP                     |
-| Credentials            | OAuth client credentials (preferred) or access token — asked only for Install MCP                                                   |
-| Mock / knowledge flags | auto-computed from an in-process probe — not a user question                                                                        |
+| Decision      | Values                                                                                                                                         |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Install scope | `project` (this repo, recommended) or `user` (all projects; not recommended)                                                                   |
+| IDE(s)        | Cursor, Kiro, and Claude Code                                                                                                                  |
+| Actions       | Install MCP and/or Install/refresh skills and subagents                                                                                        |
+| MCP config    | Claude Code and Kiro: auto-register the server through the IDE's CLI, or copy the `mcp.json` snippet yourself. Other IDEs: copy the snippet. |
 
-To install or reconfigure MCP manually, run `ava-mcp setup`. To refresh skills and subagents after an update, run `ava-mcp update`.
+The wizard does not ask for a region or credentials — see [Signing in](#signing-in).
+
+### MCP configuration
+
+The MCP entry is deliberately small — it holds no credentials:
+
+```json
+{
+  "mcpServers": {
+    "ava-harness": {
+      "command": "ava-mcp",
+      "args": ["serve"],
+      "env": {
+        "FASTMCP_LOG_LEVEL": "ERROR"
+      },
+      "disabled": false,
+      "timeout": 60000
+    }
+  }
+}
+```
+
+For Claude Code this lives in `./.mcp.json`; for Kiro, `./.kiro/settings/mcp.json`. With auto-install, the wizard runs `claude mcp add ava-harness ...` or `kiro-cli mcp add ava-harness ...` for you.
+
+### Signing in
+
+Credentials are stored in `./.ava_mcp/config.toml` (relative to the directory you run the command in), never in `mcp.json`. Add `.ava_mcp/` to your `.gitignore` so a token or client secret is never committed.
+
+- **Browser sign-in (default).** On first start, `ava-mcp serve` opens your browser to pick a Genesys Cloud region and sign in; approve the app on your first login. The session lasts about 12 hours, and in production an expired session reopens the browser automatically. You can also sign in ahead of time with `ava-mcp login`.
+- **Your own OAuth client.** Run `ava-mcp login --auth client-credentials`, or set `AVA_HABITAT` together with `GENESYS_CLIENT_ID` / `GENESYS_CLIENT_SECRET` (or `GENESYS_ACCESS_TOKEN`) in the environment.
+- **A stored session takes precedence over environment variables.** If you used environment credentials before and then run `ava-mcp login`, the environment credentials are ignored until you run `ava-mcp logout`.
+- **Permissions are checked at sign-in.** `ava-mcp login` only saves a session if the core permissions are granted. Environment-variable credentials are not checked.
+
+See [docs/cli.md](./docs/cli.md#credentials-and-precedence) for the full precedence rules and a sample `mcp.json` with your client id, secret, and habitat in the `env` block.
+
+### `ava-mcp` commands
+
+| Command               | Does                                                         |
+| --------------------- | ------------------------------------------------------------ |
+| `ava-mcp setup`       | Interactive install wizard (alias: `init`). Does not sign in. |
+| `ava-mcp serve`       | Start the MCP stdio server — what `mcp.json` launches.        |
+| `ava-mcp login`       | Sign in to Genesys Cloud (browser, or `--auth client-credentials`). |
+| `ava-mcp logout`      | Clear the stored sign-in.                                     |
+| `ava-mcp skills sync` | Install or refresh AVA skills and subagents after an update.  |
+| `ava-mcp upgrade`     | Upgrade `ava-mcp` itself.                                     |
+
+See [docs/cli.md](./docs/cli.md) for every command, flag, and example, including `status` and `docs`.
 
 ## AI Skills
 
@@ -117,8 +157,9 @@ After the installation is complete, the following AI Skills are installed that w
 | `ava-evaluate` | Runs the scenarios as multi-turn conversations and reports a success-rate scorecard. Projects cost first, then delegates scenarios to the scenario-runner subagent.                                    |
 | `ava-critique` | Reviews an AVA design or published version for quality — best-practice compliance, payload correctness, test coverage, deployment readiness.                                                          |
 | `ava-analysis` | Deep AVA-definition analysis (role, tools, knowledge, configuration, guardrails) that produces an in-memory report. Used by the `ava-critique` subagent.                                              |
+| `ava-navigator` | Designs and creates a Navigator: one bot flow that classifies a caller's intent and routes each intent to an existing AVA, Guide, or botflow, plus one inbound call flow that calls it. Shows a draft preview before anything is created in Genesys Cloud. |
 
-`ava-analysis` is an auxiliary skill invoked by critique — it is not a lifecycle step of its own.
+`ava-analysis` is an auxiliary skill invoked by critique — it is not a lifecycle step of its own. `ava-navigator` is a standalone skill you invoke directly (see [Navigator flow](#navigator-flow)); `ava-dispatch` does not route to it.
 
 ## Sub-agents
 
@@ -129,6 +170,7 @@ After the installation is complete, the following sub-agents are installed that 
 | `ava-scenario-runner` | Runs one turn-based evaluation scenario end-to-end in an isolated context — acts as the simulated user, drives the conversation via the `cicero_*` tools, runs Layer 1 (deterministic trajectory) and Layer 2 (rubric) checks, and persists per-attempt results. Scoring happens once, after every runner finishes, via `generate_scorecard`. Runs in parallel for fast evaluation. |
 | `ava-critique`        | Drives the `ava-analysis` skill to produce an authoring-quality review, then calls `generate_critique_report` and returns a summary.                                                                                                                                                                                                                                                |
 | `ava-design-assist`   | Runs comprehensive cookbook analysis on a design-in-progress to detect advanced patterns and suggest fixes before saving.                                                                                                                                                                                                                                                           |
+| `ava-navigator-researcher` | Resolves and verifies the AVAs, botflows, and Guides named for a Navigator (by id or name) and writes a short real description of each from its definition. Reports resolved / not found / unpublished / ambiguous back to `ava-navigator`; never talks to the user.                                                                                                       |
 
 ## AVA Harness
 
@@ -185,10 +227,21 @@ FileUpload authoring tools (`ensure_knowledge_source`, `upload_knowledge_documen
 | `generate_scorecard`       | Score every persisted attempt in an eval run and write JSON / Markdown / HTML reports. |
 | `generate_critique_report` | Render an authoring-quality critique into JSON / Markdown / HTML reports.              |
 
+### Navigator *(on by default)*
+
+Disable by setting `AVA_NAVIGATOR_TOOLS_DISABLED=true` if the signed-in user lacks the Navigator authoring grants listed in [docs/permissions.md](./docs/permissions.md#navigator-authoring).
+
+| Tool                | Description                                                                                                                                                  |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `preview_navigator` | Validate a Navigator draft against the org (assets exist and are published, intents and CCA schema resolve), save it, and render a visual preview.          |
+| `build_navigator`   | Re-run every check on the confirmed draft and create the Navigator bot flow and inbound call flow.                                                          |
+
+`list_resources` discovery for `botflow`, `guide`, `cca_schema`, and `customer_intent_category` stays available either way.
+
 ### Mock DataActions *(on by default)*
 
-Disable by setting `AVA_MOCK_DATA_ACTIONS_DISABLED=true` if your OAuth client
-lacks the Mock DataAction authoring grants listed under Install.
+Disable by setting `AVA_MOCK_DATA_ACTIONS_DISABLED=true` if the signed-in user
+lacks the Mock DataAction authoring grants listed in [docs/permissions.md](./docs/permissions.md#mock-dataaction-authoring).
 
 | Tool                      | Description                                                       |
 | ------------------------- | ----------------------------------------------------------------- |
@@ -222,6 +275,21 @@ ava-dispatch → ava-design ⇄ ava-knowledge → ava-build → ava-test → ava
 5. `ava-evaluate` — runs the scenarios and produces a scorecard.
 6. `ava-critique` (any time) — reviews quality and feeds findings back to design. Not a sequential step; invoke it whenever you want a second opinion.
 
+## Navigator flow
+
+`ava-navigator` is separate from the lifecycle above. Use it when you want one intent-routed entry point in front of AVAs, Guides, or botflows that already exist — typically AVAs you built and published through the main lifecycle. Ask for it directly, for example: "Create a Navigator for my Billing and Support AVAs".
+
+```text
+collect assets → verify assets → confirm assets → propose intents → confirm / edit intents
+                 (researcher)
+→ configure CCA → preview_navigator ⇄ revise draft → confirm → build_navigator
+```
+
+1. **Collect and verify assets** — you name the AVAs, Guides, and botflows; the `ava-navigator-researcher` subagent confirms each exists, is published, and writes a real description from its definition.
+2. **Propose and confirm intents** — intents (each optionally linked to one asset) and Conversation Custom Attributes (CCA) are proposed and edited with you; nothing is defaulted silently.
+3. **Preview** — `preview_navigator` validates the draft against your org and renders it. Nothing is created in Genesys Cloud yet.
+4. **Build** — once you confirm, `build_navigator` creates the Navigator bot flow and one inbound call flow that calls it. A caller asking for a person ends the bot flow and the call flow then disconnects; there is no transfer to a queue. Attaching a phone number is a manual step the skill reminds you about but never performs.
+
 ## Where sessions are stored
 
 Each authoring session writes to `.ava-lifecycle/` in your project root (gitignored). Every AVA gets its own subdirectory, so multiple AVAs and sessions never overwrite each other:
@@ -241,25 +309,9 @@ In a nutshell, `ava-dispatch` compares the last known Genesys Cloud AVA version 
 
 ## Troubleshooting authentication
 
-If you hit an authentication error (expired or rejected credentials, 401/403 responses, or the MCP server failing to connect), the quickest fix is to delete the `.ava_mcp/config.toml` file and let the setup recreate it. The location depends on how you installed:
+For an authentication error (expired or rejected credentials, 401/403 responses, or the MCP server failing to connect), run `ava-mcp logout` and then `ava-mcp login`, then restart your IDE (or reload MCP). If that doesn't help, delete `.ava_mcp/config.toml` — Kiro Powers keeps it at `~/.kiro/powers/installed/ava-harness/.ava_mcp/config.toml`.
 
-| Setup                                              | Location of `config.toml`                                    |
-| -------------------------------------------------- | ------------------------------------------------------------ |
-| Claude Code                                        | `./.ava_mcp/config.toml` (project root)                      |
-| Kiro (all setups except Kiro Powers)               | `./.ava_mcp/config.toml` (project root)                      |
-| Kiro Powers                                        | `~/.kiro/powers/installed/ava-harness/.ava_mcp/config.toml`  |
-
-Delete it, for example:
-
-```bash
-# Claude Code and Kiro (non-Powers)
-rm ./.ava_mcp/config.toml
-
-# Kiro Powers
-rm ~/.kiro/powers/installed/ava-harness/.ava_mcp/config.toml
-```
-
-Then restart your IDE (or reload MCP). If the problem persists, re-run `ava-mcp setup` to re-enter your Genesys Cloud region and OAuth credentials.
+See [docs/troubleshooting.md](./docs/troubleshooting.md) for the `config.toml` locations by setup and fixes for missing permissions, 403s after first start, environment credentials being ignored, and missing tools.
 
 ## License
 
