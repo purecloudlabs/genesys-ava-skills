@@ -141,7 +141,7 @@ See [docs/cli.md](./docs/cli.md#credentials-and-precedence) for the full precede
 | `ava-mcp skills sync` | Install or refresh AVA skills and subagents after an update.  |
 | `ava-mcp upgrade`     | Upgrade `ava-mcp` itself.                                     |
 
-See [docs/cli.md](./docs/cli.md) for every command, flag, and example, including `status` and `docs`.
+See [docs/cli.md](./docs/cli.md) for every command, flag, and example, including `status`.
 
 ## AI Skills
 

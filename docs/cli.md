@@ -11,7 +11,7 @@
 | `ava-mcp status`       | —       | Show the stored sign-in and whether a newer release exists.   |
 | `ava-mcp skills sync`  | —       | Install or refresh AVA skills and subagents.                  |
 | `ava-mcp upgrade`      | —       | Upgrade `ava-mcp` itself.                                     |
-| `ava-mcp docs [GUIDE]` | `doc`   | Print a bundled offline guide: `base` (default), `install`, `validate`, `verify`. |
+| `ava-mcp docs [GUIDE]` | `doc`   | **Deprecated** — see [below](#ava-mcp-docs-deprecated). |
 
 There is no `ava-mcp update` or top-level `ava-mcp sync`. Use `ava-mcp skills sync` to refresh skills and `ava-mcp upgrade` to update the tool.
 
@@ -117,6 +117,10 @@ Upgrades `ava-mcp` itself by re-running the project installer.
 | `--force`       | Skip the version check and always reinstall.         |
 
 The three flags are mutually exclusive. Without a terminal, `upgrade` behaves like `--yes`.
+
+## `ava-mcp docs` (deprecated)
+
+`ava-mcp docs [GUIDE]` prints bundled offline setup guides (`base`, `install`, `validate`, `verify`). They were written for agent-driven installs from a local wheel and are no longer relevant: use `ava-mcp setup` and the documentation in this repository instead. The command is still present but is not needed for any current workflow.
 
 ## Credentials and precedence
 
