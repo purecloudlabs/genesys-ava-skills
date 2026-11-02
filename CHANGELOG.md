@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.7.0
+Support for Answer Generation
+Minor: include intent information in list categories tool
+
 ## 1.6.0
 
 Added the AVA Navigator skill, sub-agent, and tools.
