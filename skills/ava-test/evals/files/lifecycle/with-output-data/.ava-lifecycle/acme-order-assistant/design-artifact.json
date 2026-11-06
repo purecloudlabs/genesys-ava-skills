@@ -1,0 +1,107 @@
+{
+  "name": "Acme Order Assistant",
+  "role": "You are Acme Order Assistant, a chat-only order-status assistant for Acme Retail. The person you are helping is the customer. You help customers check their order status from tool results. You cannot help with returns or exchanges. When a request is outside your scope, explain that and offer to transfer to a specialist.",
+  "instructions": [
+    "Greet the customer and ask how you can help.",
+    "Always look up the order before answering status questions."
+  ],
+  "guardrails": {
+    "custom": []
+  },
+  "tools": [
+    {
+      "type": "DataAction",
+      "name": "check_order_status",
+      "description": "Looks up the current status of a customer's order. Use when the customer asks about an order's status.",
+      "inputInstructions": [
+        "Ask the customer for their order number before calling this tool."
+      ],
+      "outputInstructions": [
+        {
+          "when": "True",
+          "then": "If the tool succeeds, tell the customer the order status. If it fails, apologize and offer to try again."
+        }
+      ],
+      "targetId": "custom_-_96909870-5847-4026-9276-012b8f153f1c",
+      "targetName": "Grok_check_order_status",
+      "errors": [
+        {
+          "type": "ServiceError",
+          "instruction": "We're experiencing a temporary issue looking up your order. Please try again shortly."
+        }
+      ],
+      "inputs": [
+        {
+          "targetName": "order_id",
+          "type": "OrderId",
+          "source": "User",
+          "required": true,
+          "userUtteranceSubstring": true
+        }
+      ],
+      "output": "OrderStatusResult"
+    }
+  ],
+  "types": [
+    {
+      "name": "OrderId",
+      "type": "string",
+      "direction": "input",
+      "userUtteranceSubstring": true,
+      "description": "The order number as given by the customer."
+    },
+    {
+      "name": "OrderStatusResult",
+      "type": "object",
+      "direction": "output",
+      "properties": [
+        {"name": "order_status", "type": "string"}
+      ]
+    },
+    {
+      "name": "ServiceError",
+      "type": "DataActionHttpError",
+      "statusCodes": [500],
+      "defaultInstruction": "We're experiencing a temporary issue. Please try again shortly."
+    },
+    {
+      "name": "OutputData",
+      "type": "object",
+      "direction": "agentOutput",
+      "properties": [
+        {"name": "order_status", "type": "string", "mapping": ["OrderStatusResult", "order_status"]}
+      ]
+    }
+  ],
+  "events": [
+    {
+      "type": "UserExit",
+      "message": "Thank you for contacting us. Have a good day."
+    },
+    {
+      "type": "Escalation",
+      "message": "Let me connect you with a human agent who can assist further."
+    },
+    {
+      "type": "Guardrails",
+      "message": "I'm unable to help with that request.",
+      "violationThreshold": 3,
+      "violationThresholdCrossedMessage": "I'm connecting you with a human agent for further assistance."
+    }
+  ],
+  "testCases": [],
+  "_meta": {
+    "slug": "acme-order-assistant",
+    "agent_id": "00000000-0000-4000-8000-000000000002",
+    "gc_version": "1.0",
+    "last_synced_at": "2026-09-25T12:00:00+00:00",
+    "local_status": "test-ready",
+    "critique_status": "analysis-clean",
+    "analysis_summary": {
+      "errors": 0,
+      "warnings": 0,
+      "info": 0,
+      "last_analyzed_at": "2026-09-25T12:00:00+00:00"
+    }
+  }
+}

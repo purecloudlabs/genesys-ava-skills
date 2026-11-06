@@ -1,0 +1,12 @@
+{
+  "avas": [
+    {
+      "name": "Acme Order Status Line Plus",
+      "slug": "cs1-ack-ava",
+      "agent_id": null,
+      "gc_version": null,
+      "local_status": "design-complete",
+      "last_updated": "2026-09-24T12:00:00+00:00"
+    }
+  ]
+}

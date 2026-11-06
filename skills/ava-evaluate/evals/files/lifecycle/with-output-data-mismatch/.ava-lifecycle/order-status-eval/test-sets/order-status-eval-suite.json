@@ -1,0 +1,11 @@
+{
+  "name": "order-status-eval Suite",
+  "agent_id": "76623df9-1edf-44e2-bb7b-48755aec782e",
+  "test_cases": [
+    { "test_case_id": "order-status-mismatch" }
+  ],
+  "metadata": {
+    "id": "order-status-eval-suite",
+    "created_at": "2026-09-25T15:00:00+00:00"
+  }
+}

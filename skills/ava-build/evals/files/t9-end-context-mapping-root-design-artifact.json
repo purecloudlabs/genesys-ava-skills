@@ -1,0 +1,20 @@
+{
+  "_comment": "Mock design-artifact fragment for the T9 End Context eval — the Data Action tool's output type is correctly declared with direction: output, but a separate OutputData (End Context) property maps to the wrong root.",
+  "types": [
+    {"name": "OrderResult", "direction": "output"},
+    {
+      "name": "OutputData",
+      "type": "object",
+      "direction": "agentOutput",
+      "properties": [
+        {"name": "customer_id", "type": "string", "mapping": ["InputData", "customer_id"]}
+      ]
+    }
+  ],
+  "tools": [
+    {
+      "name": "lookup_order",
+      "output": {"type": "OrderResult"}
+    }
+  ]
+}

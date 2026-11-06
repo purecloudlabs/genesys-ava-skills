@@ -1,0 +1,16 @@
+{
+  "_comment": "Mock design-artifact fragment for the L16 eval — contextRetentionEnabled is a DataAction-only field, but it's set here on a KnowledgeBase tool.",
+  "tools": [
+    {
+      "name": "search_policies",
+      "type": "KnowledgeBase",
+      "contextRetentionEnabled": false
+    },
+    {
+      "name": "process_payment",
+      "type": "DataAction",
+      "output": {"type": "PaymentResult"},
+      "contextRetentionEnabled": false
+    }
+  ]
+}

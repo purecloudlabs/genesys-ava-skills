@@ -1,0 +1,10 @@
+{
+  "_comment": "Mock list_resources(resource_type=\"ava\") response for eval case 2 — de-leaked from the prompt: the answer belongs in the mock's tool response, not the question.",
+  "mock_tool": "list_resources",
+  "mock_args": {"resource_type": "ava"},
+  "mock_response": {
+    "resources": [
+      {"id": "agt-existing-001", "name": "Acme Order Assistant", "status": "published"}
+    ]
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "_comment": "Mock design-artifact fragment for the E3 eval — the UserExit message is an instruction to the model rather than reply text. The Escalation and Guardrails messages are normal customer-facing lines and must not be flagged.",
+  "events": [
+    {
+      "type": "UserExit",
+      "message": "For any exit, do not write anything: no farewell, no thank-you, and no emojis. End with an empty message. The customer has already been informed of the destination in your previous question."
+    },
+    {
+      "type": "Escalation",
+      "message": "Let me connect you with our customer service team. Please stay on the line."
+    },
+    {
+      "type": "Guardrails",
+      "violationThreshold": 3,
+      "message": "I can only help with order questions. Is there anything else I can help with?",
+      "violationThresholdCrossedMessage": "I'm sorry, but I can't help you with that."
+    }
+  ]
+}

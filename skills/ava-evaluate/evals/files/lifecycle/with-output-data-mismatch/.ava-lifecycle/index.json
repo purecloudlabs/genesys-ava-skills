@@ -1,0 +1,12 @@
+{
+  "avas": [
+    {
+      "name": "eval-end-context-order-status Agent",
+      "slug": "order-status-eval",
+      "agent_id": "76623df9-1edf-44e2-bb7b-48755aec782e",
+      "gc_version": "1.0",
+      "local_status": "test-ready",
+      "last_updated": "2026-09-25T13:50:51+00:00"
+    }
+  ]
+}
