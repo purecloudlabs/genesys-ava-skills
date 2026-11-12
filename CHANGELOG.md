@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.8.0
+
+- Default new AVAs to the Stable model; preserve existing model selections on updates.
+- Add support for MCP tool definitions in AVA versions.
+- Migrate AVA session and turn calls from the deprecated API to the new public Agentic Virtual Agent API.
+
 ## 1.7.0
 Support for Answer Generation
 Minor: include intent information in list categories tool
