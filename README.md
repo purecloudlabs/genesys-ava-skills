@@ -25,9 +25,7 @@ NOTE: If you run into an error around TLS on the install you may need to run the
 Windows: `$env:UV_SYSTEM_CERTS = "true"` 
 Linux/MAC: `export UV_SYSTEM_CERTS="true"`
 
-NOTE: To install the latest pre-release instead of the latest stable release:  
-Linux/Mac: `curl -sSL https://raw.githubusercontent.com/purecloudlabs/genesys-ava-skills/main/install.sh | sh -s -- --pre` (or `curl -sSL https://raw.githubusercontent.com/purecloudlabs/genesys-ava-skills/main/install.sh | GENESYS_AVA_PRERELEASE=1 sh`)  
-Windows: `$env:GENESYS_AVA_PRERELEASE = 1; irm https://raw.githubusercontent.com/purecloudlabs/genesys-ava-skills/main/install.ps1 | iex`
+NOTE: To install a pre-release or an exact version instead of the latest stable release, see [Installing a pre-release or a specific version](./docs/cli.md#installing-a-pre-release-or-a-specific-version).
 
 3. **Run the setup wizard** from your project directory:
 

@@ -2,27 +2,30 @@
 
 `ava-mcp` is a single entry point, installed as a `uv` tool by the [install script](../README.md#quick-start). Run `ava-mcp <command> --help` for the options of any command, and `ava-mcp --version` for the installed version. Running `ava-mcp` with no command prints help and exits non-zero.
 
-## Installing a pre-release
+## Installing a pre-release or a specific version
 
-Both install scripts default to the latest **stable** release (GitHub's `/releases/latest`, which excludes pre-releases). To install the latest pre-release instead, use the `--pre` flag (`install.sh` only) or the `GENESYS_AVA_PRERELEASE` environment variable (either script):
+Both install scripts default to the latest stable release. Use `--pre` for the highest version including pre-releases, or `--version <X.Y.Z>` for an exact release:
 
 ```bash
 # Linux/Mac
 curl -sSL https://raw.githubusercontent.com/purecloudlabs/genesys-ava-skills/main/install.sh | sh -s -- --pre
-curl -sSL https://raw.githubusercontent.com/purecloudlabs/genesys-ava-skills/main/install.sh | GENESYS_AVA_PRERELEASE=1 sh
+curl -sSL https://raw.githubusercontent.com/purecloudlabs/genesys-ava-skills/main/install.sh | sh -s -- --version 1.8.1
 
-# Windows
+# Windows (direct invocation)
+.\install.ps1 -Pre
+.\install.ps1 -Version 1.8.1
+
+# Windows (via irm | iex, use env vars instead of flags)
 $env:GENESYS_AVA_PRERELEASE = 1
+$env:GENESYS_AVA_VERSION = "1.8.1"
 irm https://raw.githubusercontent.com/purecloudlabs/genesys-ava-skills/main/install.ps1 | iex
 ```
 
-Either way the script lists every release, newest first, and installs the first one that has an `ava_mcp*.whl` asset — so a pre-release is picked up even if it sits ahead of the latest stable release. Re-running the plain command (no flag, no environment variable) goes back to the latest stable release — except in PowerShell, `$env:GENESYS_AVA_PRERELEASE` persists for the rest of that shell session once set, so a later plain `iex` install in the same window still installs a pre-release. Clear it first:
+`GENESYS_AVA_PRERELEASE=1` and `GENESYS_AVA_VERSION=1.8.1` work the same way for `install.sh` piped through `sh`.
 
-```powershell
-Remove-Item Env:GENESYS_AVA_PRERELEASE
-```
+`--pre` picks the highest version across all releases, not just the newest-published one. `--version` installs the exact release tagged `vX.Y.Z` (the `v` is optional) and fails if that tag has no `.whl` asset attached.
 
-If you download `install.ps1` and run it directly instead of piping it through `iex`, you can pass `-Pre` as a regular switch parameter: `.\install.ps1 -Pre`.
+In PowerShell, `$env:GENESYS_AVA_PRERELEASE` / `$env:GENESYS_AVA_VERSION` persist for the rest of the session once set — clear with `Remove-Item Env:GENESYS_AVA_PRERELEASE` / `Env:GENESYS_AVA_VERSION`.
 
 | Command                | Alias   | Does                                                          |
 | ---------------------- | ------- | ------------------------------------------------------------- |
