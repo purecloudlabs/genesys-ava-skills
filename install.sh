@@ -12,6 +12,10 @@
 # Skip the confirmation prompt (e.g. for CI/non-interactive use):
 #   curl -sSL .../install.sh | AVA_MCP_YES=1 sh
 #
+# Install the latest pre-release instead of the latest stable release:
+#   curl -sSL .../install.sh | sh -s -- --pre
+#   curl -sSL .../install.sh | GENESYS_AVA_PRERELEASE=1 sh
+#
 # Safe to re-run: it re-resolves the latest release every time and reinstalls
 # over whatever was there before, so running it again is how you update.
 
@@ -19,18 +23,39 @@ set -eu
 
 REPO="purecloudlabs/genesys-ava-skills"
 
+PRERELEASE="${GENESYS_AVA_PRERELEASE:-0}"
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --pre) PRERELEASE=1 ;;
+    *) echo "error: unknown argument: $1" >&2; exit 1 ;;
+  esac
+  shift
+done
+
 if ! command -v uv >/dev/null 2>&1; then
   echo "error: 'uv' is not installed. Install it first:" >&2
   echo "  curl -LsSf https://astral.sh/uv/install.sh | sh" >&2
   exit 1
 fi
 
-whl_url=$(curl -sSL "https://api.github.com/repos/${REPO}/releases/latest" \
+if [ "$PRERELEASE" = "1" ]; then
+  echo "Resolving latest pre-release of ${REPO}..." >&2
+  releases_url="https://api.github.com/repos/${REPO}/releases"
+else
+  releases_url="https://api.github.com/repos/${REPO}/releases/latest"
+fi
+
+whl_url=$(curl -sSL "$releases_url" \
   | grep -oE '"browser_download_url": *"[^"]*ava_mcp[^"]*\.whl"' \
-  | grep -oE 'https://[^"]*')
+  | grep -oE 'https://[^"]*' \
+  | head -n 1)
 
 if [ -z "$whl_url" ]; then
-  echo "error: no ava_mcp*.whl found in the latest release of ${REPO}" >&2
+  if [ "$PRERELEASE" = "1" ]; then
+    echo "error: no ava_mcp*.whl found in any release (including pre-releases) of ${REPO}" >&2
+  else
+    echo "error: no ava_mcp*.whl found in the latest release of ${REPO}" >&2
+  fi
   exit 1
 fi
 

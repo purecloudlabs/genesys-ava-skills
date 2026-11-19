@@ -13,12 +13,21 @@
 #   $env:AVA_MCP_YES = "1"
 #   irm https://raw.githubusercontent.com/purecloudlabs/genesys-ava-skills/main/install.ps1 | iex
 #
+# Install the latest pre-release instead of the latest stable release:
+#   $env:GENESYS_AVA_PRERELEASE = 1
+#   irm https://raw.githubusercontent.com/purecloudlabs/genesys-ava-skills/main/install.ps1 | iex
+#
 # Safe to re-run: it re-resolves the latest release every time and reinstalls
 # over whatever was there before, so running it again is how you update.
+
+param(
+    [switch]$Pre
+)
 
 $ErrorActionPreference = "Stop"
 
 $Repo = "purecloudlabs/genesys-ava-skills"
+$Prerelease = $Pre -or ($env:GENESYS_AVA_PRERELEASE -eq "1")
 
 if (-not (Get-Command uv -ErrorAction SilentlyContinue)) {
     Write-Error "'uv' is not installed. Install it first:`n  irm https://astral.sh/uv/install.ps1 | iex"
@@ -26,10 +35,17 @@ if (-not (Get-Command uv -ErrorAction SilentlyContinue)) {
 }
 
 try {
-    $release = Invoke-RestMethod -Uri "https://api.github.com/repos/$Repo/releases/latest" -ErrorAction Stop
+    if ($Prerelease) {
+        Write-Host "Resolving latest pre-release of ${Repo}..."
+        $releases = Invoke-RestMethod -Uri "https://api.github.com/repos/$Repo/releases" -ErrorAction Stop
+        $release = $releases | Where-Object { $_.assets | Where-Object { $_.browser_download_url -match "ava_mcp.*\.whl$" } } | Select-Object -First 1
+    }
+    else {
+        $release = Invoke-RestMethod -Uri "https://api.github.com/repos/$Repo/releases/latest" -ErrorAction Stop
+    }
 }
 catch {
-    Write-Error "error: failed to query latest release for ${Repo}: $_"
+    Write-Error "error: failed to query release for ${Repo}: $_"
     exit 1
 }
 
@@ -37,7 +53,12 @@ $whlAsset = $release.assets | Where-Object { $_.browser_download_url -match "ava
 $whlUrl = $whlAsset.browser_download_url
 
 if (-not $whlUrl) {
-    Write-Error "error: no ava_mcp*.whl found in the latest release of $Repo"
+    if ($Prerelease) {
+        Write-Error "error: no ava_mcp*.whl found in any release (including pre-releases) of $Repo"
+    }
+    else {
+        Write-Error "error: no ava_mcp*.whl found in the latest release of $Repo"
+    }
     exit 1
 }
 
