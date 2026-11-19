@@ -3,6 +3,7 @@
 ## 1.8.1
 
 - Navigator: support non-English flows via `language` on the draft, with translatable `greeting_line`, `error_line`, and `intent_fallback_template` spoken text; the flow-shell/document language and inbound-call TTS voice follow it.
+- Add language support AVA Sessions.
 - Fix minor permission issues
 
 ## 1.8.0
