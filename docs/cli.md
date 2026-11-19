@@ -2,6 +2,28 @@
 
 `ava-mcp` is a single entry point, installed as a `uv` tool by the [install script](../README.md#quick-start). Run `ava-mcp <command> --help` for the options of any command, and `ava-mcp --version` for the installed version. Running `ava-mcp` with no command prints help and exits non-zero.
 
+## Installing a pre-release
+
+Both install scripts default to the latest **stable** release (GitHub's `/releases/latest`, which excludes pre-releases). To install the latest pre-release instead, use the `--pre` flag (`install.sh` only) or the `GENESYS_AVA_PRERELEASE` environment variable (either script):
+
+```bash
+# Linux/Mac
+curl -sSL https://raw.githubusercontent.com/purecloudlabs/genesys-ava-skills/main/install.sh | sh -s -- --pre
+curl -sSL https://raw.githubusercontent.com/purecloudlabs/genesys-ava-skills/main/install.sh | GENESYS_AVA_PRERELEASE=1 sh
+
+# Windows
+$env:GENESYS_AVA_PRERELEASE = 1
+irm https://raw.githubusercontent.com/purecloudlabs/genesys-ava-skills/main/install.ps1 | iex
+```
+
+Either way the script lists every release, newest first, and installs the first one that has an `ava_mcp*.whl` asset — so a pre-release is picked up even if it sits ahead of the latest stable release. Re-running the plain command (no flag, no environment variable) goes back to the latest stable release — except in PowerShell, `$env:GENESYS_AVA_PRERELEASE` persists for the rest of that shell session once set, so a later plain `iex` install in the same window still installs a pre-release. Clear it first:
+
+```powershell
+Remove-Item Env:GENESYS_AVA_PRERELEASE
+```
+
+If you download `install.ps1` and run it directly instead of piping it through `iex`, you can pass `-Pre` as a regular switch parameter: `.\install.ps1 -Pre`.
+
 | Command                | Alias   | Does                                                          |
 | ---------------------- | ------- | ------------------------------------------------------------- |
 | `ava-mcp setup`        | `init`  | Interactive install wizard. Does not sign in.                 |
@@ -73,6 +95,8 @@ Prod regions accepted by `--habitat`:
 
 `prod`, `prod-apne1`, `prod-apne2`, `prod-apne3`, `prod-aps1`, `prod-apse1`, `prod-apse2`, `prod-cac1`, `prod-euc1`, `prod-euc2`, `prod-euw1`, `prod-euw2`, `prod-mec1`, `prod-mxc1`, `prod-sae1`, `prod-usw2`
 
+On a region not present in this list (for example a FedRAMP/GovCloud org), `--habitat` and the browser picker don't apply — see [Setting the API and login URLs directly](#setting-the-api-and-login-urls-directly).
+
 ## `ava-mcp serve`
 
 Starts the MCP server on stdio — this is the command in your `mcp.json`. Before it accepts tool calls it checks for credentials:
@@ -136,7 +160,7 @@ Things worth knowing:
 - **A stored session always beats environment variables** — including an expired browser session and a placeholder session. If you set credentials in your environment and later run `ava-mcp login`, the stored session silently takes over and your environment credentials are ignored. Run `ava-mcp logout` to go back to them.
 - **An expired browser session also overrides env credentials at server start:** the server reopens the browser to sign in again rather than falling back to the environment variables. `ava-mcp logout` avoids this too.
 - **An unparseable or unrecognised `config.toml` is treated as absent**, so environment variables take over.
-- **Settings the session does not carry** (`AVA_PUBLIC_BASE_URL`, `AVA_PUBLIC_AUTH_URL`, `AVA_TEST_MODE`) are always read from the environment.
+- **Settings the session does not carry** (`AVA_PUBLIC_BASE_URL`, `AVA_PUBLIC_AUTH_URL`, `AVA_TEST_MODE`) are always read from the environment. `AVA_PUBLIC_BASE_URL` / `AVA_PUBLIC_AUTH_URL` are how you point the harness at a specific API and login host directly — see [Setting the API and login URLs directly](#setting-the-api-and-login-urls-directly).
 - **The optional-tool flags follow the same rule:** a stored session's flags win over `AVA_MOCK_DATA_ACTIONS_DISABLED`, `AVA_KNOWLEDGE_UPLOAD_DISABLED`, and `AVA_NAVIGATOR_TOOLS_DISABLED`.
 - **An authorization failure clears the stored session**, and you are asked to restart the server so it signs in again.
 
@@ -165,16 +189,56 @@ An example `mcp.json` with your own OAuth client in the `env` block (replace the
 }
 ```
 
+Use this if you don't want browser/PKCE sign-in and prefer a fixed OAuth client id and secret. For a region in the `--habitat` list, this is one of two ways to do that — the other is `ava-mcp login --auth client-credentials`, which prompts for the same id and secret and persists them to `./.ava_mcp/config.toml` instead of `mcp.json`.
+
 For a pre-issued token, replace the client id and secret with `"GENESYS_ACCESS_TOKEN": "<your-access-token>"`. Your OAuth client needs the extra scopes listed in [Permissions and OAuth scopes](./permissions.md#oauth-scopes-bring-your-own-client-only).
 
-Do not use this together with a stored session for the same project: while `./.ava_mcp/config.toml` exists, the `AVA_HABITAT` and credential variables above are ignored. The default `mcp.json` (no credentials) is the one `ava-mcp setup` writes.
+#### Setting the API and login URLs directly
+
+If your org's region isn't present in the [`--habitat` list](#regions) — for example a FedRAMP/GovCloud org — replace `AVA_HABITAT` with `AVA_PUBLIC_BASE_URL` and `AVA_PUBLIC_AUTH_URL` instead, pointing at your region's API and login hosts. Look these up in [AWS regions for Genesys Cloud deployment](https://help.genesys.cloud/articles/aws-regions-for-genesys-cloud-deployment/) — don't assume the example values below apply to your deployment:
+
+```json
+{
+  "mcpServers": {
+    "ava-harness": {
+      "command": "ava-mcp",
+      "args": ["serve"],
+      "env": {
+        "FASTMCP_LOG_LEVEL": "ERROR",
+        "AVA_PUBLIC_BASE_URL": "<your region's API base URL>",
+        "AVA_PUBLIC_AUTH_URL": "<your region's login/auth base URL>",
+        "AVA_CLIENT_ID": "<your OAuth client id>",
+        "AVA_CLIENT_SECRET": "<your OAuth client secret>"
+      },
+      "disabled": false,
+      "timeout": 60000
+    }
+  }
+}
+```
+
+For example, a FedRAMP/GovCloud org on `use2.us-gov-pure.cloud` would set `"AVA_PUBLIC_BASE_URL": "https://api.use2.us-gov-pure.cloud"` and `"AVA_PUBLIC_AUTH_URL": "https://login.use2.us-gov-pure.cloud"`, alongside that org's own OAuth client id and secret.
+
+Unlike the standard-region case above, this one has no `config.toml`-backed equivalent: `ava-mcp login` (browser or `--auth client-credentials`) only ever persists a `config.toml`, and `config.toml` never carries `AVA_PUBLIC_BASE_URL` / `AVA_PUBLIC_AUTH_URL` (see the bullet above). The environment-variable block above is the only way to sign in to a region the browser picker doesn't have an entry for.
+
+Do not use this together with a stored session for the same project: while `./.ava_mcp/config.toml` exists, the `AVA_HABITAT` and credential variables above — including `AVA_PUBLIC_BASE_URL` / `AVA_PUBLIC_AUTH_URL` — are ignored. Delete it first if you're switching an existing project to one of the setups on this page:
+
+```bash
+# Claude Code and Kiro (non-Powers)
+rm ./.ava_mcp/config.toml
+
+# Kiro Powers
+rm ~/.kiro/powers/installed/ava-harness/.ava_mcp/config.toml
+```
+
+The default `mcp.json` (no credentials) is the one `ava-mcp setup` writes. After editing `mcp.json` for any of the setups above, restart your IDE (or reload MCP).
 
 Differences to be aware of when you stay on environment variables:
 
 - No permission check and no optional-tool probe runs. Missing grants appear later as `403` errors, and you must set the `AVA_*_DISABLED` flags yourself ([details](./permissions.md#environment-variable-credentials)).
 - Secrets live in `mcp.json` or `.env`, which are easy to commit by accident.
 
-To move to a stored session, run `ava-mcp login` (browser) or `ava-mcp login --auth client-credentials`, then remove the credentials from `mcp.json` / `.env`. Existing environment variables stay valid as a fallback only for as long as no stored session exists.
+To move to a stored session for a region in the `--habitat` list, run `ava-mcp login` (browser) or `ava-mcp login --auth client-credentials`, then remove the credentials from `mcp.json` / `.env`. Existing environment variables stay valid as a fallback only for as long as no stored session exists. For a region not present in the `--habitat` list, there is no stored-session option — see [Setting the API and login URLs directly](#setting-the-api-and-login-urls-directly) above.
 
 ## `config.toml`
 

@@ -25,6 +25,10 @@ NOTE: If you run into an error around TLS on the install you may need to run the
 Windows: `$env:UV_SYSTEM_CERTS = "true"` 
 Linux/MAC: `export UV_SYSTEM_CERTS="true"`
 
+NOTE: To install the latest pre-release instead of the latest stable release:  
+Linux/Mac: `curl -sSL https://raw.githubusercontent.com/purecloudlabs/genesys-ava-skills/main/install.sh | sh -s -- --pre` (or `curl -sSL https://raw.githubusercontent.com/purecloudlabs/genesys-ava-skills/main/install.sh | GENESYS_AVA_PRERELEASE=1 sh`)  
+Windows: `$env:GENESYS_AVA_PRERELEASE = 1; irm https://raw.githubusercontent.com/purecloudlabs/genesys-ava-skills/main/install.ps1 | iex`
+
 3. **Run the setup wizard** from your project directory:
 
     ```bash
@@ -125,6 +129,7 @@ Credentials are stored in `./.ava_mcp/config.toml` (relative to the directory yo
 
 - **Browser sign-in (default).** On first start, `ava-mcp serve` opens your browser to pick a Genesys Cloud region and sign in; approve the app on your first login. The session lasts about 12 hours, and in production an expired session reopens the browser automatically. You can also sign in ahead of time with `ava-mcp login`.
 - **Your own OAuth client.** Run `ava-mcp login --auth client-credentials`, or set `AVA_HABITAT` together with `GENESYS_CLIENT_ID` / `GENESYS_CLIENT_SECRET` (or `GENESYS_ACCESS_TOKEN`) in the environment.
+- **A specific API and login URL (for example FedRAMP/GovCloud).** For regions not present in the `--habitat` list or the browser picker, set `AVA_PUBLIC_BASE_URL` / `AVA_PUBLIC_AUTH_URL` plus your own OAuth client instead — see [Setting the API and login URLs directly](./docs/cli.md#setting-the-api-and-login-urls-directly).
 - **A stored session takes precedence over environment variables.** If you used environment credentials before and then run `ava-mcp login`, the environment credentials are ignored until you run `ava-mcp logout`.
 - **Permissions are checked at sign-in.** `ava-mcp login` only saves a session if the core permissions are granted. Environment-variable credentials are not checked.
 
