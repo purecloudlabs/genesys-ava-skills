@@ -1,32 +1,44 @@
 #!/usr/bin/env bash
 #
 # install.sh — install or update the ava-mcp CLI tools as a uv tool, built
-# from the latest ava_mcp*.whl in the genesys-ava-skills GitHub releases.
-# The wheel exposes a single `ava-mcp` command with subcommands (setup, serve,
-# login, skills sync, upgrade, ...) — `uv tool install` installs whatever
-# entry points the wheel declares, so this script doesn't hardcode names.
+# from an ava_mcp*.whl in the genesys-ava-skills GitHub releases.
 #
 # Usage:
 #   curl -sSL https://raw.githubusercontent.com/purecloudlabs/genesys-ava-skills/main/install.sh | sh
 #
-# Skip the confirmation prompt (e.g. for CI/non-interactive use):
+# Skip the confirmation prompt:
 #   curl -sSL .../install.sh | AVA_MCP_YES=1 sh
 #
-# Install the latest pre-release instead of the latest stable release:
+# Install the highest version including pre-releases:
 #   curl -sSL .../install.sh | sh -s -- --pre
 #   curl -sSL .../install.sh | GENESYS_AVA_PRERELEASE=1 sh
 #
-# Safe to re-run: it re-resolves the latest release every time and reinstalls
-# over whatever was there before, so running it again is how you update.
+# Install an exact version (stable or pre-release):
+#   curl -sSL .../install.sh | sh -s -- --version 1.8.1
+#   curl -sSL .../install.sh | GENESYS_AVA_VERSION=1.8.1 sh
+#
+# Safe to re-run: it reinstalls over whatever was there before.
 
 set -eu
 
 REPO="purecloudlabs/genesys-ava-skills"
+API="https://api.github.com/repos/${REPO}"
 
 PRERELEASE="${GENESYS_AVA_PRERELEASE:-0}"
+VERSION="${GENESYS_AVA_VERSION:-}"
+
 while [ $# -gt 0 ]; do
   case "$1" in
     --pre) PRERELEASE=1 ;;
+    --version)
+      if [ $# -lt 2 ]; then
+        echo "error: --version requires a value, e.g. --version 1.8.1" >&2
+        exit 1
+      fi
+      VERSION="$2"
+      shift
+      ;;
+    --version=*) VERSION="${1#--version=}" ;;
     *) echo "error: unknown argument: $1" >&2; exit 1 ;;
   esac
   shift
@@ -38,21 +50,33 @@ if ! command -v uv >/dev/null 2>&1; then
   exit 1
 fi
 
-if [ "$PRERELEASE" = "1" ]; then
-  echo "Resolving latest pre-release of ${REPO}..." >&2
-  releases_url="https://api.github.com/repos/${REPO}/releases"
+fetch() {
+  curl -sSL "$1"
+}
+
+if [ -n "$VERSION" ]; then
+  VERSION="${VERSION#v}"
+  echo "Resolving ${REPO} v${VERSION}..." >&2
+  releases_url="${API}/releases/tags/v${VERSION}"
+elif [ "$PRERELEASE" = "1" ]; then
+  echo "Resolving highest version (incl. pre-releases) of ${REPO}..." >&2
+  releases_url="${API}/releases?per_page=100"
 else
-  releases_url="https://api.github.com/repos/${REPO}/releases/latest"
+  releases_url="${API}/releases/latest"
 fi
 
-whl_url=$(curl -sSL "$releases_url" \
+whl_url=$(fetch "$releases_url" \
   | grep -oE '"browser_download_url": *"[^"]*ava_mcp[^"]*\.whl"' \
   | grep -oE 'https://[^"]*' \
-  | head -n 1)
+  | sort -V \
+  | tail -n 1 || true)
 
 if [ -z "$whl_url" ]; then
-  if [ "$PRERELEASE" = "1" ]; then
-    echo "error: no ava_mcp*.whl found in any release (including pre-releases) of ${REPO}" >&2
+  if [ -n "$VERSION" ]; then
+    echo "error: no ava_mcp*.whl asset found on release v${VERSION} of ${REPO}" >&2
+    echo "       (check the tag exists, is not a draft, and has a .whl attached)" >&2
+  elif [ "$PRERELEASE" = "1" ]; then
+    echo "error: no ava_mcp*.whl found in any release of ${REPO}" >&2
   else
     echo "error: no ava_mcp*.whl found in the latest release of ${REPO}" >&2
   fi
